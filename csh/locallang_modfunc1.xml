@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<description>Web&gt;Questionaire, Export module</description>
+		<type>CSH</type>
+		<fileId>EXT:pbsurveyexport/csh/locallang_modfunc1.xml</fileId>
+		<csh_table>_MOD_web_txpbsurveyM1</csh_table>
+		<keep_original_text>1</keep_original_text>
+		<ext_filename_template>EXT:pbsurveyexport/csh/###LANGKEY###.locallang_modfunc1.xml</ext_filename_template>
+		<labelContext type="array">
+		</labelContext>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="pbsurveyexport_modfunc1.alttitle">Export Questionaire results</label>
+			<label index="pbsurveyexport_modfunc1.description">Enables you to export the results, gathered by the Questionaire extension, to a csv file for further analysis in SPSS, its open source concurrent PSPP, Excel or OpenOffice Calc.</label>
+			<label index="pbsurveyexport_modfunc1.details">Hier komen de details te staan</label>
+			<label index="pbsurveyexport_modfunc1.seeAlso">xEXT_pbsurvey</label>
+			<label index="pbsurveyexport_modfunc1.image"></label>
+			<label index="pbsurveyexport_modfunc1.image_descr"></label>
+		</languageKey>
+	</data>
+</T3locallang>

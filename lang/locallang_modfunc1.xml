@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<description>Language labels of Questionaire export module</description>
+		<type>module</type>
+		<csh_table></csh_table>
+		<fileId>EXT:pbsurveyexport/lang/locallang_modfunc1.xml</fileId>
+		<ext_filename_template>EXT:pbsurveyexport/lang/###LANGKEY###.locallang_modfunc1.xml</ext_filename_template>
+		<labelContext type="array" />
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="moduleFunction">Export results</label>
+			<label index="title">Questionaire Export</label>
+			<label index="stats">Questionaire Statistics</label>
+			<label index="number_questions">Number of questions</label>
+			<label index="number_forms">Number of submitted forms</label>
+			<label index="export_configuration">Export configuration</label>
+			<label index="export_all">Export all rows</label>
+			<label index="export_selected">Export selected rows</label>
+			<label index="export_from">From row</label>
+			<label index="export_till">till</label>
+			<label index="export_unfinished">Include unfinished responses</label>
+			<label index="separator_options">Separator options</label>
+			<label index="separator_tab">Tab</label>
+			<label index="separator_semicolon">Semicolon</label>
+			<label index="separator_comma">Comma</label>
+			<label index="separator_space">Space</label>
+			<label index="separator_other">Other</label>
+			<label index="separator_delimiter">Text delimiter</label>
+			<label index="fe_users">User information</label>
+			<label index="fe_users_explain">Check the fields of the user information you want to include as columns in the export file.</label>
+			<label index="scoring">Scoring &amp; radio button groups</label>
+			<label index="scoring_explain">When you have provided scoring points to answers in questions which use groups with radio buttons, it can be useful to combine these scoring points in one column. This is especially recommended when using a statistical program like SPSS to calculate the results.
+Even when you didn't provide scoring points, this function is very useful. It combines all given answers into one column with questions where only one answer can be provided. Otherwise you end up with a lot of columns.</label>
+			<label index="scoring_notCombine">Do not combine</label>
+			<label index="scoring_combine">Combine</label>
+			<label index="save">Save as</label>
+			<label index="save_filename">File name:</label>
+			<label index="save_submit">Save</label>
+			<label index="list_questions">List of questions</label>
+			<label index="additional">additional</label>
+			<label index="value_true">True</label>
+			<label index="value_false">False</label>
+			<label index="value_yes">Yes</label>
+			<label index="value_no">No</label>
+			<label index="crdate">Creation_date</label>
+			<label index="tstamp">Latest_change</label>
+			<label index="name">Name</label>
+			<label index="address">Address</label>
+			<label index="zip">Zipcode</label>
+			<label index="city">City</label>
+			<label index="email">Email</label>
+		</languageKey>
+	</data>
+</T3locallang>
