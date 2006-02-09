@@ -54,7 +54,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 */
 	function main()	{
 		global $BE_USER;
-		if (isset($this->arrModParameters['csv_type'])) {
+		if (isset($this->arrModParameters['submit']) && $this->checkForm()) {
 			$this->exportCsv();
 		} elseif (($this->pObj->id && is_array($this->arrPageInfo)) || ($BE_USER->user['admin'] && !$this->pObj->id))	{
 			$strOutput .= $this->moduleContent();
@@ -191,9 +191,18 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		global $LANG;
 		$strTitle = str_replace(' ', '', $this->arrPageInfo['title']);
 		$strFileName = 'res_'.$strTitle.'_'.date('dmy-Hi').'.csv';
-		$arrFileName[] = '<p>'.$LANG->getLL('save_filename').'&nbsp;<input type="text" name="'.$this->pObj->strExtKey.'[filename]" value="'.$strFileName.'" />&nbsp;<input type="submit" value="'.$LANG->getLL('save_submit').'" /></p>';
+		$arrFileName[] = '<p>'.$LANG->getLL('save_filename').'&nbsp;<input type="text" name="'.$this->pObj->strExtKey.'[filename]" value="'.$strFileName.'" />&nbsp;<input type="submit" name="'.$this->pObj->strExtKey.'[submit]" value="'.$LANG->getLL('save_submit').'" /></p>';
 		$strOutput = $this->pObj->objDoc->section($LANG->getLL('save'),implode(chr(13),$arrFileName),0,0);
 		return $strOutput;
+	}
+	
+	/**
+	 * Do a validation on the form
+	 *
+	 * @return	mixed	True if fields are correct, if false array containing the missing fields
+	 */
+	function checkForm() {
+		
 	}
 	
 	/**
