@@ -13,6 +13,8 @@
 			<label index="moduleFunction">Export results</label>
 			<label index="title">Questionaire Export</label>
 			<label index="stats">Questionaire Statistics</label>
+			<label index="error">Error</label>
+			<label index="error_text">There are some errors in the form. See the warnings below and correct them.</label>
 			<label index="number_questions">Number of questions</label>
 			<label index="number_forms">Number of submitted forms</label>
 			<label index="export_configuration">Export configuration</label>
@@ -21,6 +23,17 @@
 			<label index="export_from">From row</label>
 			<label index="export_till">till</label>
 			<label index="export_unfinished">Include unfinished responses</label>
+			<label index="error_configuration_empty">Enter a value in 'From' and 'till' field.</label>
+			<label index="error_configuration_values">The field 'From' must be equal or smaller than the 'till' field.</label>
+			<label index="error_configuration_numeric">Enter a numeric value in 'From' and 'till' field.</label>
+			<label index="error_configuration_range">The value in the field 'From' or 'till' is out of range.</label>
+			<label index="error_separator">Enter a value in the textfield 'Other'.</label>
+			<label index="error_filename">Enter a file name.</label>
+			<label index="error_fileopen">The file could not be opened to write to.</label>
+			<label index="error_filecolumn">The column names could not be written to the file.</label>
+			<label index="error_fileresult">A result could not be written to the file.</label>
+			<label index="error_fileclose">The file could not be closed.</label>
+			<label index="error_fileread">The file is not readable.</label>
 			<label index="separator_options">Separator options</label>
 			<label index="separator_tab">Tab</label>
 			<label index="separator_semicolon">Semicolon</label>
@@ -46,11 +59,11 @@ Even when you didn't provide scoring points, this function is very useful. It co
 			<label index="value_no">No</label>
 			<label index="crdate">Creation_date</label>
 			<label index="tstamp">Latest_change</label>
-			<label index="name">Name</label>
-			<label index="address">Address</label>
-			<label index="zip">Zipcode</label>
-			<label index="city">City</label>
-			<label index="email">Email</label>
+			<label index="finished">Finished</label>
+			<label index="unfinished">Unfinished</label>
+			<label index="ip-address">IP Address</label>
+			<label index="begintstamp">Start</label>
+			<label index="endtstamp">End</label>
 		</languageKey>
 	</data>
 </T3locallang>
