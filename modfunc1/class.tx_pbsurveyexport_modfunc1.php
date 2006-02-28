@@ -25,13 +25,19 @@
 $LANG->includeLLFile('EXT:pbsurveyexport/lang/locallang_modfunc1.xml');
 require_once (PATH_t3lib.'class.t3lib_extobjbase.php');
 require_once (PATH_t3lib.'class.t3lib_admin.php');
+require_once (PATH_t3lib.'class.t3lib_basicfilefunc.php');
 $BE_USER->modAccess($MCONF,1);
 require_once(t3lib_extMgm::extPath('cc_debug').'class.tx_ccdebug.php');
 
 class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
     var $arrModParameters = array(); // Module parameters, coming from TCEforms linking to the module.
     var $arrPageInfo = array(); // Page access
-
+	var $arrResults = array(); // Array containing integers about results, called from main module.
+	var $intTotalRows; // Total rows of results in database, finished and unfinished surveys.
+	var $arrError = array(); // Contains errormessages if validation of form failed.
+	var $fileHandle; // Handle to identify filestream to temporary file.
+	var $strSeparator; // Separator string.
+	
 	/**
 	 * Initialization of the class
 	 *
@@ -40,26 +46,27 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	function init(&$pObj,$conf)	{
 		global $BACK_PATH;
 		parent::init($pObj,$conf);
-		$this->handleExternalFunctionValue();
 		$this->arrModParameters = t3lib_div::_GP($this->pObj->strExtKey);
 		$this->arrPageInfo = t3lib_BEfunc::readPageAccess($this->pObj->id,$this->perms_clause);
-		list($strRequestUri) = explode('#',t3lib_div::getIndpEnv('REQUEST_URI'));
-		$this->pObj->form = '<form action="'.htmlspecialchars($strRequestUri).'" method="post" name="modfunc1_'.$this->pObj->strExtKey.'">';
+		$this->arrResults = $this->pObj->countResults();
+		$this->intTotalRows = $this->arrResults['finished'] + ($this->arrModParameters['unfinished']?$this->arrResults['unfinished']:0);
 	}
 
 	/**
-	 * Main function of the module. Write the content to $this->content
+	 * Main function of the module. 
+	 * Define if form has to be shown or file has to be created
 	 *
 	 * @return   string		HTML content for the function
 	 */
 	function main()	{
 		global $BE_USER;
-		if (isset($this->arrModParameters['submit']) && $this->checkForm()) {
-			$this->exportCsv();
+		$this->checkForm();
+		if ($this->checkForm()) {
+			$this->buildCsv();
 		} elseif (($this->pObj->id && is_array($this->arrPageInfo)) || ($BE_USER->user['admin'] && !$this->pObj->id))	{
 			$strOutput .= $this->moduleContent();
-			return $strOutput;
 		}
+		return $strOutput;
 	}
 	
 	/**
@@ -68,6 +75,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 * @return   string      HTML Content for the module
 	 */
 	function moduleContent() {
+		$strOutput .= $this->sectionError();
 		$strOutput .= $this->sectionConfiguration();
 		$strOutput .= $this->sectionSeparator();
 		$strOutput .= $this->sectionUserFields();
@@ -77,33 +85,49 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	}
 	
 	/**
+	 * Section which shows the main error message if any after submitting the form
+	 *
+	 * @return	string	HTML containing the section
+	 */
+	function sectionError() {
+		global $LANG;
+		if (isset($this->arrError)) {
+			$strTemp = '<p><span class="typo3-red">'.$LANG->getLL('error_text').'</span></p>'; 
+			$strOutput = $this->pObj->objDoc->section($LANG->getLL('error'),$strTemp,0,1);
+		return $strOutput;
+		}
+	}
+	
+	/**
 	 * Build section to define which rows are exported
 	 *
 	 * @return	string	HTML containing the section
 	 */
 	function sectionConfiguration() {
 		global $LANG;
-		$arrResults = $this->pObj->countResults();
 		$arrOptions[] = '<table>';
 		$arrOptions[] = '<tr>';
-		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[configuration]" type="radio" value="all" checked="checked" /></td>';
-		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_all').' ('.$arrResults['finished'].')</td>';
+		$strChecked = (!isset($this->arrModParameters['rows']) || $this->arrModParameters['rows']=='all')?'checked="checked"':'';
+		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[rows]" type="radio" value="all"' . $strChecked . ' /></td>';
+		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_all').' ('.$this->arrResults['finished'].')</td>';
 		$arrOptions[] = '</tr>';
 		$arrOptions[] = '<tr>';
-		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[configuration]" type="radio" value="selected" /></td>';
+		$strChecked = ($this->arrModParameters['rows']=='selected')?'checked="checked"':'';
+		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[rows]" type="radio" value="selected"' . $strChecked . ' /></td>';
 		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_selected').'</td>';
 		$arrOptions[] = '</tr>';
 		$arrOptions[] = '<tr>';
 		$arrOptions[] = '<td>&nbsp;</td>';
 		$arrOptions[] = '<td>'.$LANG->getLL('export_from').'</td>';
-		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][from]" /></td>';
+		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][from]" value="' . $this->arrModParameters['configuration']['from'] . '" /></td>';
 		$arrOptions[] = '<td>'.$LANG->getLL('export_till').'</td>';
-		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][till]" /></td>';
+		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][till]" value="' . $this->arrModParameters['configuration']['till'] . '" /></td>';
 		$arrOptions[] = '</tr>';
-		$arrOptions[] = '<tr><td colspan="5">&nbsp;</td></tr>';
+		$arrOptions[] = '<tr><td colspan="5">' . ($this->arrError['configuration']?'<span class="typo3-red">'.$this->arrError['configuration'].'</span>':'&nbsp;') . '</td></tr>';
 		$arrOptions[] = '<tr>';
-		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[configuration][unfinished]" type="checkbox" value="1" /></td>';
-		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_unfinished').' ('.$arrResults['unfinished'].')</td>';
+		$strChecked = (isset($this->arrModParameters['unfinished']))?'checked="checked"':'';
+		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[unfinished]" type="checkbox" value="1"' . $strChecked . ' /></td>';
+		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_unfinished').' ('.$this->arrResults['unfinished'].')</td>';
 		$arrOptions[] = '</tr>';
 		$arrOptions[] = '</table>';
 		$strOutput = $this->pObj->objDoc->section($LANG->getLL('export_configuration'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'pbsurveyexport_modfunc1',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrOptions),0,1);
@@ -120,18 +144,34 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		global $LANG;
 		$arrSeparator[] = '<table>';
 		$arrSeparator[] = '<tr>';
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][tab]" value="checkbox" /></td><td width="25%">'.$LANG->getLL('separator_tab').'</td>';
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][comma]" value="checkbox" checked="checked" /></td><td width="25%">'.$LANG->getLL('separator_comma').'</td>';
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][other]" value="checkbox" /></td><td width="25%">'.$LANG->getLL('separator_other').'</td>';
-		$arrSeparator[] = '<td width="25%"><input type="text" name="'.$this->pObj->strExtKey.'[separator][other_value]" /></td>';
+		$strChecked = (isset($this->arrModParameters['separator']['tab']))?'checked="checked"':'';
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][tab]" value="1"' . $strChecked . ' /></td><td width="25%">'.$LANG->getLL('separator_tab').'</td>';
+		if (!isset($this->arrModParameters['submit'])) {
+			$strChecked = ' checked="checked"';
+		} else {
+			$strChecked = (isset($this->arrModParameters['separator']['comma']))?' checked="checked"':'';
+		}
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][comma]" value="1"' . $strChecked . ' /></td><td width="25%">'.$LANG->getLL('separator_comma').'</td>';
+		$strChecked = (isset($this->arrModParameters['separator']['other']))?' checked="checked"':'';
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][other]" value="1"' . $strChecked . ' /></td><td width="25%">'.$LANG->getLL('separator_other').'</td>';
+		$strValue = $this->arrModParameters['separator']['other_value']!=''?$this->arrModParameters['separator']['other_value']:'';
+		$arrSeparator[] = '<td width="25%"><input type="text" name="'.$this->pObj->strExtKey.'[separator][other_value]" value="' . $strValue . '" /></td>';
 		$arrSeparator[] = '</tr>';
 		$arrSeparator[] = '<tr>';
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][semicolon]" value="checkbox" /></td><td>'.$LANG->getLL('separator_semicolon').'</td>';
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][space]" value="checkbox" /></td><td>'.$LANG->getLL('separator_space').'</td>';
+		$strChecked = (isset($this->arrModParameters['separator']['semicolon']))?' checked="checked"':'';
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][semicolon]" value="1"' . $strChecked . ' /></td><td>'.$LANG->getLL('separator_semicolon').'</td>';
+		$strChecked = (isset($this->arrModParameters['separator']['space']))?' checked="checked"':'';
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][space]" value="1"' . $strChecked . ' /></td><td>'.$LANG->getLL('separator_space').'</td>';
 		$arrSeparator[] = '<td></td><td>'.$LANG->getLL('separator_delimiter').'</td>';
-		$arrSeparator[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[separator][delimiter]" value="&quot;" /></td>';
+		if (!isset($this->arrModParameters['submit'])) {
+			$strValue = '&quot;';
+		} else {
+			$strValue = $this->arrModParameters['separator']['delimiter']!=''?htmlspecialchars($this->arrModParameters['separator']['delimiter']):'';
+		}
+		$arrSeparator[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[separator][delimiter]" value="' . $strValue . '" maxlength="1" /></td>';
 		$arrSeparator[] = '</tr>';
 		$arrSeparator[] = '</table>';
+		$arrSeparator[] = $this->arrError['separator']?'<span class="typo3-red">'.$this->arrError['separator'].'</span>':'&nbsp;';	
 		$strOutput = $this->pObj->objDoc->section($LANG->getLL('separator_options'),implode(chr(13),$arrSeparator),0,0);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
@@ -190,8 +230,9 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	function sectionSave() {
 		global $LANG;
 		$strTitle = str_replace(' ', '', $this->arrPageInfo['title']);
-		$strFileName = 'res_'.$strTitle.'_'.date('dmy-Hi').'.csv';
+		$strFileName = $this->arrModParameters['filename']?$this->arrModParameters['filename']:'res_'.$strTitle.'_'.date('dmy-Hi').'.csv';
 		$arrFileName[] = '<p>'.$LANG->getLL('save_filename').'&nbsp;<input type="text" name="'.$this->pObj->strExtKey.'[filename]" value="'.$strFileName.'" />&nbsp;<input type="submit" name="'.$this->pObj->strExtKey.'[submit]" value="'.$LANG->getLL('save_submit').'" /></p>';
+		$arrFileName[] = $this->arrError['filename']?'<span class="typo3-red">'.$this->arrError['filename'].'</span>':'&nbsp;';	
 		$strOutput = $this->pObj->objDoc->section($LANG->getLL('save'),implode(chr(13),$arrFileName),0,0);
 		return $strOutput;
 	}
@@ -199,10 +240,39 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	/**
 	 * Do a validation on the form
 	 *
-	 * @return	mixed	True if fields are correct, if false array containing the missing fields
+	 * @return	boolean		True if fields are correct
 	 */
 	function checkForm() {
-		
+		global $LANG;
+		$this->objFileManagement = t3lib_div::makeInstance('t3lib_basicFileFunctions');
+		$boolOutput = TRUE;
+		if (isset($this->arrModParameters['submit'])) {
+			if ($this->arrModParameters['rows']=='selected') {
+				if ($this->arrModParameters['configuration']['from']=='' || $this->arrModParameters['configuration']['till']=='') {
+					$this->arrError['configuration'] = $LANG->getLL('error_configuration_empty');
+				} elseif ($this->arrModParameters['configuration']['from'] > $this->arrModParameters['configuration']['till']) {
+					$this->arrError['configuration'] = $LANG->getLL('error_configuration_values');
+				} elseif (!is_numeric($this->arrModParameters['configuration']['from']) || !is_numeric($this->arrModParameters['configuration']['till'])) {
+					$this->arrError['configuration'] = $LANG->getLL('error_configuration_numeric');
+				} elseif ($this->arrModParameters['configuration']['from']<=0 || $this->arrModParameters['configuration']['till']>$this->intTotalRows) {
+					$this->arrError['configuration'] = $LANG->getLL('error_configuration_range');
+				}
+			}
+			if (isset($this->arrModParameters['separator']['other']) && !$this->arrModParameters['separator']['other_value']) {
+				$this->arrError['separator'] = $LANG->getLL('error_separator');
+			}
+			if (!$this->arrModParameters['filename']) {
+				$this->arrError['filename'] = $LANG->getLL('error_filename');
+			} else {
+				$this->arrModParameters['filename'] = $this->objFileManagement->cleanFileName($this->arrModParameters['filename']);
+			}
+		} else {
+			$boolOutput = FALSE;
+		}
+		if (isset($this->arrError)) {
+			$boolOutput = FALSE;
+		}
+		return $boolOutput;
 	}
 	
 	/**
@@ -210,211 +280,246 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 *
 	 * @return	void
 	 */
-	function exportCsv() {
-		$strMimeType = 'application/octet-stream';
-		$strTitle = str_replace(' ', '', $this->arrPageInfo['title']);
-		$strFileName = 'res_'.$strTitle.'_'.date('dmy-Hi').'.csv';
-		
-		Header('Content-Type: '.$strMimeType);
-		Header('Content-Disposition: attachment; filename='.$strFileName);
-		echo $this->makeCsv();
-		exit;
+	function buildCsv() {
+		global $LANG;
+		$strFilepath = PATH_site . 'typo3temp/' . $this->arrModParameters['filename'];
+		t3lib_div::unlink_tempfile($strFilepath);
+		if ($this->fileHandle = fopen($strFilepath,'ab')) {
+			$this->setSeparator();
+			$arrError['column'] = $this->writeCsvColumnNames();
+			$arrError['result'] = $this->writeCsvResult();
+			$arrError['close'] = fclose($this->fileHandle);
+			t3lib_div::fixPermissions($strFilepath);
+			if (!in_array(FALSE,$arrError)) {
+				header('Content-Disposition: attachment; filename='.$this->arrModParameters['filename'].'');
+				header('Content-type: x-application/octet-stream');
+				header('Content-Transfer-Encoding: binary');
+				header('Content-length:'.filesize($strFilepath).'');
+				$arrError['read'] = readfile($strFilepath);
+				if ($arrError['read']) {
+					exit;
+				}
+			}
+		} else {
+			$arrOutput[] = $LANG->getLL('error_fileopen');
+		}
+		foreach ($arrError as $strKey => $strValue) {
+			if (!$strValue) {
+				$arrOutput[] = $LANG->getLL('error_file'.$strKey);
+			}
+		}
+		$strOutput = implode(chr(13),$arrOutput);
+		return $strOutput;
 	}
 	
 	/**
-	 * Creates array containing all column headers of the csv file
+	 * Builds the separator string according to the form input
 	 *
-	 * @return   array      First row of the csv file
+	 * @return   void      
 	 */
-	function csvHeaderRow() {
-		global $LANG;
-		$arrOutput = array(
-			'id',
-			$LANG->getLL('crdate'),
-			$LANG->getLL('tstamp'),
-		);
-		foreach ($this->pObj->arrSurveyItems as $arrItem) {
-			if ($arrItem['question_alias']) {
-				$strColName = $arrItem['question_alias'];
-			} else { 
-				$strColName = trim($arrItem['question']);
+	function getSeparator() {
+		$this->strSeparator = $this->arrModParameters['separator']['tab']?chr(9):'';
+		$this->strSeparator .= $this->arrModParameters['separator']['comma']?',':'';
+		$this->strSeparator .= $this->arrModParameters['separator']['semicolon']?';':'';
+		$this->strSeparator .= $this->arrModParameters['separator']['space']?' ':'';
+		$this->strSeparator .= $this->arrModParameters['separator']['other']?$this->arrModParameters['separator']['other_value']:'';
+	}
+	
+	/**
+	 * Write the column names as first row to the csv file
+	 *
+	 * @return   mixed      Number of bytes written, or FALSE on error
+	 */
+	function writeCsvColumnNames() {
+		global $LANG,$TCA;
+		$arrColNames['uid'] = 'uid';
+		if ($this->arrModParameters['unfinished']) {
+			$arrColNames['finished'] = $LANG->getLL('finished');
+		}
+		$arrColNames['ip'] = $LANG->getLL('ip-address');
+		$arrColNames['begintstamp'] = $LANG->getLL('begintstamp');
+		$arrColNames['endtstamp'] = $LANG->getLL('endtstamp');
+		if (isset($this->arrModParameters['fe_users'])) {
+			$arrUserKeys = array_keys($this->arrModParameters['fe_users']);
+			foreach ($arrUserKeys as $strColumn) {
+				$arrColNames[$strColumn] = ereg_replace(":$","",trim($GLOBALS['LANG']->sL($TCA['fe_users']['columns'][$strColumn]['label'])));
 			}
-			$arrAnswers = $this->pObj->answersArray($arrItem['answers']);
-			$arrRows = explode("\n",$arrItem['rows']);
-			if (in_array($arrItem['question_type'],array(1,2,3,4,5,10,12,13,14))) {
-				if (($this->arrModParameters['csv_type'] && $arrItem['question_type']!=1) || in_array($arrItem['question_type'],array(10,12,13,14))) {
-					$arrOutput[] = $strColName;
-				} elseif (in_array($arrItem['question_type'],array(1,2,3))) {
-					foreach (array_keys($arrAnswers) as $strSingleAnswer){
-						$arrOutput[] = $strColName . ' (' . $strSingleAnswer . ')';
+		}
+		foreach ($this->pObj->arrSurveyItems as $intQuestionKey=>$arrItem) {
+
+			$strQuestion = $arrItem['question_alias']?$arrItem['question_alias']:$arrItem['question'];
+			if (!in_array($arrItem['question_type'],array(10,12,13,14))) {
+				if (in_array($arrItem['question_type'],array(1,2,3,4,5))) {
+					if ($this->arrModParameters['scoring']!=0 && $arrItem['question_type']!=1) {
+						$arrColNames[$intQuestionKey] = $strQuestion;
+					} elseif (!in_array($arrItem['question_type'],array(4,5))) {
+						foreach($arrItem['answers'] as $intAnswerKey=>$strAnswer) {
+							$arrColNames[$intQuestionKey.'_'.$intAnswerKey] = $strQuestion.'('.$strAnswer['answer'].')';
+						}
+					} else {
+						$strNo = $arrItem['question_type']==4?$LANG->getLL('value_false'):$LANG->getLL('value_no');
+						$strYes = $arrItem['question_type']==4?$LANG->getLL('value_true'):$LANG->getLL('value_yes');
+						$arrColNames[$intQuestionKey.'_0'] = $strQuestion.'('.$strNo.')';
+						$arrColNames[$intQuestionKey.'_1'] = $strQuestion.'('.$strYes.')';
 					}
-					if ($arrItem['answers_allow_additional'] && $arrItem['question_type']!=2) {
-						$arrOutput[] = $strColName . ' (' . $LANG->getLL('additional') .')';
+					if (isset($arrItem['answers_allow_additional'])) {
+						$arrColNames[$intQuestionKey.'_-1'] = $strQuestion.'('.$LANG->getLL('additional').')';
 					}
-				} elseif ($arrItem['question_type']==4) {
-					$arrOutput[] = $strColName . ' (' . $LANG->getLL('value_true') . ')';
-					$arrOutput[] = $strColName . ' (' . $LANG->getLL('value_false') . ')';
-				} elseif ($arrItem['question_type']==5) {
-					$arrOutput[] = $strColName . ' (' . $LANG->getLL('value_yes') .')';
-					$arrOutput[] = $strColName . ' (' . $LANG->getLL('value_no') . ')';
+				} else { // 6,7,8,9,11,15,16
+					foreach ($arrItem['rows'] as $intRowKey=>$row) {
+						if (in_array($arrItem['question_type'],array(6,7)) || ($this->arrModParameters['scoring']==0 && $arrItem['question_type']==8)) {
+							foreach ($arrItem['answers'] as $intAnswerKey=>$answer) {
+								$arrColNames[$intQuestionKey.'_'.$intRowKey.'_'.$intAnswerKey] = $strQuestion.'('.$row.')('.$answer['answer'].')';
+							}
+						} else {
+							$arrColNames[$intQuestionKey.'_'.$intRowKey] = $strQuestion.'('.$row.')';
+						}
+					}
 				}
 			} else {
-				foreach ($arrRows as $strRow) {
-					if (($this->arrModParameters['csv_type'] && $arrItem['question_type']==8) || in_array($arrItem['question_type'],array(9,11,15,16))) {
-						$arrOutput[] = $strColName . ' (' . trim($strRow) . ')';
-					} else {
-						foreach (array_keys($arrAnswers) as $arrSingleCol){
-							$arrOutput[] = $strColName . ' (' . trim($strRow) . ' ' . $arrSingleCol . ')';
-						}
-					}
-				}
+				$arrColNames[$intQuestionKey] = $strQuestion;
 			}
 		}
-		return $arrOutput;
+		foreach($arrColNames as $intKey=>$strValue) {
+			$this->arrCsvCols[$intKey] = '';
+		}
+		$mixOutput = $this->writeCsvLine($arrColNames);
+		return $mixOutput;
 	}
 	
 	/**
-	 * Get the personal information from the user if not anonymous
-	 * 
-	 * @param	array	Results record
-	 * @return	array	Personal user information
-	 */
-	 function getUser($arrInput) {
-	 	global $LANG;
- 		if (intval($arrInput['user'])) {
-			$dbRes=$GLOBALS['TYPO3_DB']->exec_SELECTquery('name,address,zip,city,email','fe_users','uid='.intval($arrInput['user']));
-			$arrUser = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes);
-			$arrResult['id'] = $arrInput['uid'];
-			$arrOutput[$LANG->getLL('crdate')] = date('d-m-Y',$arrInput['crdate']);
-			$arrOutput[$LANG->getLL('tstamp')] = date('d-m-Y',$arrInput['tstamp']);
-			$arrOutput[$LANG->getLL('name')] = $arrUser['name'];
-			$arrOutput[$LANG->getLL('address')] = $arrUser['address'];
-			$arrOutput[$LANG->getLL('zip')] = $arrUser['zip'];
-			$arrOutput[$LANG->getLL('city')] = $arrUser['city'];
-			$arrOutput[$LANG->getLL('email')] = $arrUser['email'];
- 		}
- 		return $arrOutput;
-	 }
-	
-	/**
-	 * Get the points for an answer if present
-	 * 
-	 * @param	array	Results record
-	 * @param	array	Answer to search for
-	 * @return	array	Point matching the given answer
-	 */
-	function getPoints($strInput,$strAnswers) {
-		$arrPossibleAnswers = $this->pObj->answersArray($strAnswers);
-		if (is_array($arrPossibleAnswers)) {
-			if ($arrPossibleAnswers[$strInput]) {
-				$intOutput = intval($arrPossibleAnswers[$strInput]);
-			}
-		}
-		return $intOutput;
-	}
-	
-	/**
-	 * Creates the csv file
+	 * Write each result as a new line to the csv file
 	 *
-	 * @return   string      csv file content
+	 * @return   mixed      Number of bytes written, or FALSE on error
 	 */
-	function makeCsv() {
-		global $LANG;	
-		$dbRes=$GLOBALS['TYPO3_DB']->exec_SELECTquery('*',$this->strTableResults,'pid='.intval($this->pObj->id).' AND deleted=0 AND hidden=0');
-		while ($arrDbResults =$GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)) {
-			$arrResult = $this->getUser($arrDbResults); 
-			$strResults = unserialize($arrDbResults['results']);
-			foreach ($strResults as $strName => $strResult) {
-				$arrItem = $this->pObj->arrSurveyItems[$strName];
-				if ($arrItem['question_alias']) {
-					$strResultKey = $arrItem['question_alias'];
-				} else {
-					$strResultKey = $strName;
+	function writeCsvResult() {
+		global $LANG;
+		$intCounter = 0;
+		$arrTemp = array();
+		$arrResultsConf['selectFields'] = 'uid,user,ip,begintstamp,endtstamp,finished';
+    	$arrResultsConf['where'] = '1=1';
+    	$arrResultsConf['where'] .= ' AND pid=' . intval($this->pObj->id);
+		$arrResultsConf['where'] .= !isset($this->arrModParameters['unfinished'])?'':' AND finished=1';
+		$arrResultsConf['where'] .= t3lib_BEfunc::BEenableFields($this->pObj->strResultsTable);
+		$arrResultsConf['where'] .= t3lib_BEfunc::deleteClause($this->pObj->strResultsTable);
+		$arrResultsConf['orderBy'] = 'uid ASC';
+		$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery($arrResultsConf['selectFields'],$this->pObj->strResultsTable,$arrResultsConf['where'],'',$arrResultsConf['orderBy'],'');
+		if ($this->arrModParameters['rows']=='selected') {
+			$boolSeek = $GLOBALS['TYPO3_DB']->sql_data_seek($dbRes,($this->arrModParameters['configuration']['from'] - 1));
+		}
+		while (($arrResultRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)) && $intCounter<=$this->intTotalRows){
+			$this->arrCsvRow = $this->arrCsvCols;
+			$this->arrCsvRow['uid'] = $arrResultRow['uid'];
+			if ($this->arrModParameters['unfinished']) {
+				$this->arrCsvRow['finished'] = $arrResultRow['finished'];
+			}
+			$this->arrCsvRow['ip'] = $arrResultRow['ip'];
+			$this->arrCsvRow['begintstamp'] =  t3lib_BEfunc::datetime($arrResultRow['begintstamp']);
+			$this->arrCsvRow['endtstamp'] = t3lib_BEfunc::datetime($arrResultRow['endtstamp']);
+			$this->readUser($arrResultRow['user']);
+			$this->readAnswers($arrResultRow['uid']);
+            $intCounter++;
+			$mixOutput = $this->writeCsvLine($this->arrCsvRow);
+			if (!$mixOutput) {
+				break;
+			}
+			unset($this->arrCsvRow);
+		}
+		return $mixOutput;
+	}
+	
+	/**
+	 * Write a single csv line to the file
+	 *
+	 * @param	 integer		Uid of the user
+	 * @return   mixed			Number of bytes written, or FALSE on error
+	 */
+	function writeCsvLine($arrInput) {
+	    $strWrite = t3lib_div::csvValues($arrInput,$this->strSeparator,$this->arrModParameters['separator']['delimiter']).chr(10);
+		$mixOutput = fwrite($this->fileHandle, $strWrite);
+		return $mixOutput;
+	}
+	
+	/**
+	 * Read the user information from the database
+	 *
+	 * @param	 integer		uid of the user
+	 * @return   void
+	 */
+	function readUser($intInput) {
+		if (isset($this->arrModParameters['fe_users'])) {
+			$arrUserKeys = array_keys($this->arrModParameters['fe_users']);
+			if ($intInput) {
+				$arrUserConf['selectFields'] = implode(',',$arrUserKeys);
+		    	$arrUserConf['where'] = '1=1';
+		    	$arrUserConf['where'] .= ' AND uid=' . $intInput;
+				$arrUserConf['orderBy'] = '';
+				$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery($arrUserConf['selectFields'],$this->pObj->strUserTable,$arrUserConf['where'],'',$arrUserConf['orderBy'],'');
+				$arrRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes);
+				foreach($arrRow as $strKey=>$strValue) {
+					$this->arrCsvRow[$strKey] = $strValue;
 				}
-				if (in_array($arrItem['question_type'],array(1,6,7,8,9,11,15,16))) {
-					foreach ($strResult as $mixedKey=>$strAnswer) {
-						if (in_array($arrItem['question_type'],array(6,7))) {
-							foreach ($strAnswer as $mixedKey2=>$strSingle) {
-								if ($arrItem['question_type']==6) {
-									$intPoint = $this->getPoints($strSingle,$arrItem['answers']);
-									$strValueTemp = $intPoint?$intPoint:'1';
-									$strKeyTemp = $strResultKey . ' (' . $mixedKey . ' ' . ($strSingle) . ')';
-								} else {
-									$strValueTemp = $strSingle;
-									$strKeyTemp = $strResultKey . ' (' . $mixedKey . ' ' . $mixedKey2 . ')';
-								}
-								$arrResult[$strKeyTemp] = $strValueTemp;
-								unset($intPoint);
-							}
-						} elseif (in_array($arrItem['question_type'],array(1,8,9,11,15,16))) {
-							if (in_array($arrItem['question_type'],array(1,8))) {
-								$intPoint = $this->getPoints($strAnswer,$arrItem['answers']);
-							}
-							if ($arrItem['question_type']==1) {
-								if (is_numeric($mixedKey)) {
-									$arrResult[$strResultKey . ' (' . $strAnswer .')'] = $intPoint?$intPoint:'1';
-								} elseif ($mixedKey=='additional') {
-									$arrResult[$strResultKey . ' (' . $LANG->getLL('additional') .')'] = $strAnswer;
-								}
-							} elseif ($arrItem['question_type']==8) {
-								if ($this->arrModParameters['csv_type']) {
-									$strKeyTemp = $strResultKey . ' (' . $mixedKey . ')';
-									$strValueTemp = $intPoint?$intPoint:$strAnswer;
-								} else {
-									$strKeyTemp = $strResultKey . ' (' . $mixedKey . ' ' . $strAnswer . ')';
-									$strValueTemp = $intPoint?$intPoint:'1';
-								}
-							} else {
-								$strKeyTemp = $strResultKey . ' (' . $mixedKey . ')';
-								$strValueTemp = $strAnswer;
-							}
-							$arrResult[$strKeyTemp] = $strValueTemp;
-							unset($intPoint);
-						}
-					}
-				} elseif (in_array($arrItem['question_type'],array(2,3,4,5))) { 
-					if (in_array($arrItem['question_type'],array(2,3))) {
-						$intPoint = $this->getPoints($strResult,$arrItem['answers']);
-						if ($arrItem['question_type']==3) {
-							$arrPossibleAnswers = $this->pObj->answersArray($arrItem['answers']);
-						}
-					}
-					if (($arrItem['question_type']==3 && $arrPossibleAnswers[$strResult]) || $arrItem['question_type']!=3) {
-						if ($this->arrModParameters['csv_type']) {
-							$strKeyTemp = $strResultKey;
-							$strValueTemp = $intPoint?$intPoint:$strResult;
-						} else {
-							$strKeyTemp = $strResultKey . ' (' . $strResult .')';
-							$strValueTemp = $intPoint?$intPoint:'1';
-						}
+			} else {
+				foreach ($arrUserKeys as $strKey) {
+					$this->arrCsvRow[$strKey] = '';
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Read the answers belonging to the result from the database
+	 *
+	 * @param	 integer		uid of the result
+	 * @return   void
+	 */
+	function readAnswers($intInput) {
+		$arrAnswersConf['selectFields'] = 'uid,question,col,row,answer';
+    	$arrAnswersConf['where'] = '1=1';
+    	$arrAnswersConf['where'] .= ' AND result=' . $intInput;
+		$arrAnswersConf['where'] .= t3lib_BEfunc::BEenableFields($this->pObj->strAnswersTable);
+		$arrAnswersConf['where'] .= t3lib_BEfunc::deleteClause($this->pObj->strAnswersTable);
+		$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery($arrAnswersConf['selectFields'],$this->pObj->strAnswersTable,$arrAnswersConf['where'],'',$arrAnswersConf['orderBy'],'');
+		while ($arrAnswersRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)){
+			$arrItem = $this->pObj->arrSurveyItems[$arrAnswersRow['question']];
+			$strKey = $arrAnswersRow['question'];
+			if ($arrItem['question_type']==1) {
+				$strKey .= '_'.$arrAnswersRow['row'];
+			} 
+			if (in_array($arrItem['question_type'],array(2,3,4,5))) {
+				if ($arrItem['question_type']==3 && !is_numeric($arrAnswersRow['answer'])) {
+					$strKey .= '_-1';
+				} elseif ($this->arrModParameters['scoring']!=1) {
+					if (in_array($arrItem['question_type'],array(4,5))) {
+						$strKey .= '_'.($arrAnswersRow['answer']-1);
 					} else {
-						$strKeyTemp = $strResultKey . ' (' . $LANG->getLL('additional') . ')';
-						$strValueTemp = $strResult;
+						$strKey .= '_'.$arrAnswersRow['answer'];
 					}
-					$arrResult[$strKeyTemp] = $strValueTemp;
-					unset($intPoint);
-				} elseif (in_array($arrItem['question_type'],array(10,12,13,14))) {
-					$strKeyTemp = $strResultKey;
-					$strValueTemp = str_replace( "\n", ' ', str_replace( "\r", "\n", str_replace( "\r\n", "\n", $strResult ) ) );						
-					$arrResult[$strKeyTemp] = $strValueTemp;
 				}
 			}
-			$arrAllRows[] = $arrResult;
-		}
-		$arrAllCols = $this->csvHeaderRow();
-		$strOutput = '"'.implode('","',$arrAllCols).'"'.chr(10);
-		foreach($arrAllRows as $arrRow) {
-			foreach($arrAllCols as $strCol) {
-				if ($arrRow[$strCol]) {
-					$strCsv .= '"' . str_replace('"',"'",$arrResult[$strCol]) . '",';
+			if (in_array($arrItem['question_type'],array(6,7,8,9,11,15,16))) {
+				$strKey .= '_'.($arrAnswersRow['row']-1);
+				if (in_array($arrItem['question_type'],array(6,7))) {
+					$strKey .= '_'.$arrAnswersRow['col'];
+				}
+			}			
+			if (in_array($arrItem['question_type'],array(7,9,10,11,12,13,14,15,16)) || ($arrItem['question_type']==1 && $arrAnswersRow['row']<0) || ($arrItem['question_type']==3 && !is_numeric($arrAnswersRow['answer']))) {
+				$strAnswer = $arrAnswersRow['answer'];
+			} elseif (in_array($arrItem['question_type'],array(1,2,3,6,8))) {
+				if ($arrItem['answers'][$arrAnswersRow['answer']]['points']!='') {
+					$strAnswer = $arrItem['answers'][$arrAnswersRow['answer']]['points'];
+				} else { // Er zijn geen punten
+					$strAnswer = $arrItem['answers'][$arrAnswersRow['answer']]['answer'];
+				}
+			} elseif (in_array($arrItem['question_type'],array(4,5))) {
+				if ($this->arrModParameters['scoring']==1) {
+					$strAnswer = $arrAnswersRow['answer']-1;
 				} else {
-					$strCsv .= '"",';
+					$strAnswer = 1;
 				}
 			}
-			$strOutput .= trim($strCsv, ',') . chr(10);
-			unset($strCsv);
+			$this->arrCsvRow[$strKey] = $strAnswer;
 		}
-		return $strOutput;
 	}
 }
 
