@@ -34,7 +34,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
     var $arrPageInfo = array(); // Page access
 	var $arrResults = array(); // Array containing integers about results, called from main module.
 	var $intTotalRows; // Total rows of results in database, finished and unfinished surveys.
-	var $arrError = array(); // Contains errormessages if validation of form failed.
+	//var $arrError = array(); // Contains errormessages if validation of form failed.
 	var $fileHandle; // Handle to identify filestream to temporary file.
 	var $strSeparator; // Separator string.
 	
@@ -285,7 +285,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strFilepath = PATH_site . 'typo3temp/' . $this->arrModParameters['filename'];
 		t3lib_div::unlink_tempfile($strFilepath);
 		if ($this->fileHandle = fopen($strFilepath,'ab')) {
-			$this->setSeparator();
+			$this->getSeparator();
 			$arrError['column'] = $this->writeCsvColumnNames();
 			$arrError['result'] = $this->writeCsvResult();
 			$arrError['close'] = fclose($this->fileHandle);
