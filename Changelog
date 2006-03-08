@@ -1,4 +1,6 @@
-2006-02-28  Patrick Broens	<patrick@patrickbroens.nl>
+2006-03-02  Patrick Broens	<patrick@patrickbroens.nl>
+	* Added Context Sensitive Help
 
+2006-02-28  Patrick Broens	<patrick@patrickbroens.nl>
 	* Added ChangeLog to pbsurveyexport
 	* Added checks on file operations

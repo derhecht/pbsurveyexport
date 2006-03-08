@@ -63,7 +63,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$this->checkForm();
 		if ($this->checkForm()) {
 			$this->buildCsv();
-		} elseif (($this->pObj->id && is_array($this->arrPageInfo)) || ($BE_USER->user['admin'] && !$this->pObj->id))	{
+		}
+		if (($this->pObj->id && is_array($this->arrPageInfo)) || ($BE_USER->user['admin'] && !$this->pObj->id))	{
 			$strOutput .= $this->moduleContent();
 		}
 		return $strOutput;
@@ -92,7 +93,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	function sectionError() {
 		global $LANG;
 		if (isset($this->arrError)) {
-			$strTemp = '<p><span class="typo3-red">'.$LANG->getLL('error_text').'</span></p>'; 
+			$strTemp = '<p><span class="typo3-red">'.$LANG->getLL('error_text').'</span></p>';
+			$strTemp .= '<ul class="typo3-red"><li>'.implode('</li>'.chr(13).'<li>',$this->arrError).'</li></ul>';
 			$strOutput = $this->pObj->objDoc->section($LANG->getLL('error'),$strTemp,0,1);
 		return $strOutput;
 		}
@@ -123,14 +125,13 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrOptions[] = '<td>'.$LANG->getLL('export_till').'</td>';
 		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][till]" value="' . $this->arrModParameters['configuration']['till'] . '" /></td>';
 		$arrOptions[] = '</tr>';
-		$arrOptions[] = '<tr><td colspan="5">' . ($this->arrError['configuration']?'<span class="typo3-red">'.$this->arrError['configuration'].'</span>':'&nbsp;') . '</td></tr>';
 		$arrOptions[] = '<tr>';
 		$strChecked = (isset($this->arrModParameters['unfinished']))?'checked="checked"':'';
 		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[unfinished]" type="checkbox" value="1"' . $strChecked . ' /></td>';
 		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_unfinished').' ('.$this->arrResults['unfinished'].')</td>';
 		$arrOptions[] = '</tr>';
 		$arrOptions[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('export_configuration'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'pbsurveyexport_modfunc1',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrOptions),0,1);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('export_configuration'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_configuration',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrOptions),0,1);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
@@ -171,8 +172,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrSeparator[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[separator][delimiter]" value="' . $strValue . '" maxlength="1" /></td>';
 		$arrSeparator[] = '</tr>';
 		$arrSeparator[] = '</table>';
-		$arrSeparator[] = $this->arrError['separator']?'<span class="typo3-red">'.$this->arrError['separator'].'</span>':'&nbsp;';	
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('separator_options'),implode(chr(13),$arrSeparator),0,0);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('separator_options'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_separator',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrSeparator),0,0);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
@@ -200,7 +200,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			}
 		}
 		$arrUserFields[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('fe_users'),implode(chr(13),$arrUserFields),0,0);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('fe_users'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_user_information',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrUserFields),0,0);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
@@ -217,7 +217,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrScoring[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[scoring]" value="1" checked="checked" /></td><td>'.$LANG->getLL('scoring_combine').'</td></tr>';
 		$arrScoring[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[scoring]" value="0" /></td><td>'.$LANG->getLL('scoring_notCombine').'</td></tr>';
 		$arrScoring[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('scoring'),implode(chr(13),$arrScoring),0,0);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('scoring'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_scoring',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrScoring),0,0);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
@@ -232,8 +232,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strTitle = str_replace(' ', '', $this->arrPageInfo['title']);
 		$strFileName = $this->arrModParameters['filename']?$this->arrModParameters['filename']:'res_'.$strTitle.'_'.date('dmy-Hi').'.csv';
 		$arrFileName[] = '<p>'.$LANG->getLL('save_filename').'&nbsp;<input type="text" name="'.$this->pObj->strExtKey.'[filename]" value="'.$strFileName.'" />&nbsp;<input type="submit" name="'.$this->pObj->strExtKey.'[submit]" value="'.$LANG->getLL('save_submit').'" /></p>';
-		$arrFileName[] = $this->arrError['filename']?'<span class="typo3-red">'.$this->arrError['filename'].'</span>':'&nbsp;';	
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('save'),implode(chr(13),$arrFileName),0,0);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('save'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_save',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrFileName),0,0);
 		return $strOutput;
 	}
 	
@@ -305,11 +304,9 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		}
 		foreach ($arrError as $strKey => $strValue) {
 			if (!$strValue) {
-				$arrOutput[] = $LANG->getLL('error_file'.$strKey);
+				$this->arrError['error_file'.$strKey] = $LANG->getLL('error_file'.$strKey);
 			}
 		}
-		$strOutput = implode(chr(13),$arrOutput);
-		return $strOutput;
 	}
 	
 	/**

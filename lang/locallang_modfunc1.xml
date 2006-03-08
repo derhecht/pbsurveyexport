@@ -14,7 +14,7 @@
 			<label index="title">Questionaire Export</label>
 			<label index="stats">Questionaire Statistics</label>
 			<label index="error">Error</label>
-			<label index="error_text">There are some errors in the form. See the warnings below and correct them.</label>
+			<label index="error_text">The following errors have occured:</label>
 			<label index="number_questions">Number of questions</label>
 			<label index="number_forms">Number of submitted forms</label>
 			<label index="export_configuration">Export configuration</label>
@@ -44,10 +44,9 @@
 			<label index="fe_users">User information</label>
 			<label index="fe_users_explain">Check the fields of the user information you want to include as columns in the export file.</label>
 			<label index="scoring">Scoring &amp; radio button groups</label>
-			<label index="scoring_explain">When you have provided scoring points to answers in questions which use groups with radio buttons, it can be useful to combine these scoring points in one column. This is especially recommended when using a statistical program like SPSS to calculate the results.
-Even when you didn't provide scoring points, this function is very useful. It combines all given answers into one column with questions where only one answer can be provided. Otherwise you end up with a lot of columns.</label>
-			<label index="scoring_notCombine">Do not combine</label>
-			<label index="scoring_combine">Combine</label>
+			<label index="scoring_explain">Choose whether to combine or not combine columns of questions where only one answer can be provided.</label>
+			<label index="scoring_notCombine">Do not combine columns</label>
+			<label index="scoring_combine">Combine columns</label>
 			<label index="save">Save as</label>
 			<label index="save_filename">File name:</label>
 			<label index="save_submit">Save</label>
