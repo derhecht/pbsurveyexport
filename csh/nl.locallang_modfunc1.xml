@@ -14,7 +14,7 @@ U heeft de mogelijkheid om &lt;strong&gt;niet-beeindigde resultaten&lt;/strong&g
 
 &lt;strong&gt;Opmerking:&lt;/strong&gt; Het exporteren van resultaten kan een behoorlijke tijd in beslag nemen. Als u veel resultaten heeft is het mogelijk dat de server een time-out geeft. In dat geval kunt u de resultaten in delen exporteren door de optie 'Exporteer selectie van resultaten' te gebruiken. Indien u ook alle niet-beeindigde resultaten mee wilt nemen, houdt er dan rekening mee om in het laatste deel in het veld 'tot' het getal in te vullen van beeindigde en niet-beeindigde resultaten, om alle resultaten te verkrijgen.</label>
 			<label index="export_separator.alttitle">Exporteren: Scheidingsopties</label>
-			<label index="export_separator.description">Configuratie van scheidingstekens en ...</label>
+			<label index="export_separator.description">Configuratie voor de scheiding van waarden in het csv bestand.</label>
 		</languageKey>
 	</data>
 	<orig_hash type="array">

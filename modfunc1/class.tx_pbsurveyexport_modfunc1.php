@@ -29,6 +29,13 @@ require_once (PATH_t3lib.'class.t3lib_basicfilefunc.php');
 $BE_USER->modAccess($MCONF,1);
 require_once(t3lib_extMgm::extPath('cc_debug').'class.tx_ccdebug.php');
 
+/**
+ * Backend Module Function 'Export' for the 'pbsurvey' extension.
+ *
+ * @author Patrick Broens <patrick@patrickbroens.nl>
+ * @package TYPO3
+ * @subpackage pbsurveyexport
+ */
 class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
     var $arrModParameters = array(); // Module parameters, coming from TCEforms linking to the module.
     var $arrPageInfo = array(); // Page access
@@ -38,9 +45,17 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	var $fileHandle; // Handle to identify filestream to temporary file.
 	var $strSeparator; // Separator string.
 	
+    /**********************************
+	 *
+	 * Configuration functions
+	 *
+	 **********************************/
+	 	
 	/**
 	 * Initialization of the class
 	 *
+	 * @param	object		Parent object
+	 * @param	array		COnfiguration array
 	 * @return	void
 	 */
 	function init(&$pObj,$conf)	{
@@ -52,6 +67,12 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$this->intTotalRows = $this->arrResults['finished'] + ($this->arrModParameters['unfinished']?$this->arrResults['unfinished']:0);
 	}
 
+    /**********************************
+	 *
+	 * General functions
+	 *
+	 **********************************/
+	 
 	/**
 	 * Main function of the module. 
 	 * Define if form has to be shown or file has to be created
@@ -83,195 +104,6 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strOutput .= $this->sectionScoring();
 		$strOutput .= $this->sectionSave();			
 		return $strOutput;
-	}
-	
-	/**
-	 * Section which shows the main error message if any after submitting the form
-	 *
-	 * @return	string	HTML containing the section
-	 */
-	function sectionError() {
-		global $LANG;
-		if (isset($this->arrError)) {
-			$strTemp = '<p><span class="typo3-red">'.$LANG->getLL('error_text').'</span></p>';
-			$strTemp .= '<ul class="typo3-red"><li>'.implode('</li>'.chr(13).'<li>',$this->arrError).'</li></ul>';
-			$strOutput = $this->pObj->objDoc->section($LANG->getLL('error'),$strTemp,0,1);
-		return $strOutput;
-		}
-	}
-	
-	/**
-	 * Build section to define which rows are exported
-	 *
-	 * @return	string	HTML containing the section
-	 */
-	function sectionConfiguration() {
-		global $LANG;
-		$arrOptions[] = '<table>';
-		$arrOptions[] = '<tr>';
-		$strChecked = (!isset($this->arrModParameters['rows']) || $this->arrModParameters['rows']=='all')?'checked="checked"':'';
-		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[rows]" type="radio" value="all"' . $strChecked . ' /></td>';
-		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_all').' ('.$this->arrResults['finished'].')</td>';
-		$arrOptions[] = '</tr>';
-		$arrOptions[] = '<tr>';
-		$strChecked = ($this->arrModParameters['rows']=='selected')?'checked="checked"':'';
-		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[rows]" type="radio" value="selected"' . $strChecked . ' /></td>';
-		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_selected').'</td>';
-		$arrOptions[] = '</tr>';
-		$arrOptions[] = '<tr>';
-		$arrOptions[] = '<td>&nbsp;</td>';
-		$arrOptions[] = '<td>'.$LANG->getLL('export_from').'</td>';
-		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][from]" value="' . $this->arrModParameters['configuration']['from'] . '" /></td>';
-		$arrOptions[] = '<td>'.$LANG->getLL('export_till').'</td>';
-		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][till]" value="' . $this->arrModParameters['configuration']['till'] . '" /></td>';
-		$arrOptions[] = '</tr>';
-		$arrOptions[] = '<tr>';
-		$strChecked = (isset($this->arrModParameters['unfinished']))?'checked="checked"':'';
-		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[unfinished]" type="checkbox" value="1"' . $strChecked . ' /></td>';
-		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_unfinished').' ('.$this->arrResults['unfinished'].')</td>';
-		$arrOptions[] = '</tr>';
-		$arrOptions[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('export_configuration'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_configuration',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrOptions),0,1);
-		$strOutput .= $this->pObj->objDoc->divider(10);
-		return $strOutput;
-	}
-	
-	/**
-	 * Build section to configure the text separators and delimiter
-	 *
-	 * @return	string	HTML containing the section
-	 */
-	function sectionSeparator() {
-		global $LANG;
-		$arrSeparator[] = '<table>';
-		$arrSeparator[] = '<tr>';
-		$strChecked = (isset($this->arrModParameters['separator']['tab']))?'checked="checked"':'';
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][tab]" value="1"' . $strChecked . ' /></td><td width="25%">'.$LANG->getLL('separator_tab').'</td>';
-		if (!isset($this->arrModParameters['submit'])) {
-			$strChecked = ' checked="checked"';
-		} else {
-			$strChecked = (isset($this->arrModParameters['separator']['comma']))?' checked="checked"':'';
-		}
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][comma]" value="1"' . $strChecked . ' /></td><td width="25%">'.$LANG->getLL('separator_comma').'</td>';
-		$strChecked = (isset($this->arrModParameters['separator']['other']))?' checked="checked"':'';
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][other]" value="1"' . $strChecked . ' /></td><td width="25%">'.$LANG->getLL('separator_other').'</td>';
-		$strValue = $this->arrModParameters['separator']['other_value']!=''?$this->arrModParameters['separator']['other_value']:'';
-		$arrSeparator[] = '<td width="25%"><input type="text" name="'.$this->pObj->strExtKey.'[separator][other_value]" value="' . $strValue . '" /></td>';
-		$arrSeparator[] = '</tr>';
-		$arrSeparator[] = '<tr>';
-		$strChecked = (isset($this->arrModParameters['separator']['semicolon']))?' checked="checked"':'';
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][semicolon]" value="1"' . $strChecked . ' /></td><td>'.$LANG->getLL('separator_semicolon').'</td>';
-		$strChecked = (isset($this->arrModParameters['separator']['space']))?' checked="checked"':'';
-		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][space]" value="1"' . $strChecked . ' /></td><td>'.$LANG->getLL('separator_space').'</td>';
-		$arrSeparator[] = '<td></td><td>'.$LANG->getLL('separator_delimiter').'</td>';
-		if (!isset($this->arrModParameters['submit'])) {
-			$strValue = '&quot;';
-		} else {
-			$strValue = $this->arrModParameters['separator']['delimiter']!=''?htmlspecialchars($this->arrModParameters['separator']['delimiter']):'';
-		}
-		$arrSeparator[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[separator][delimiter]" value="' . $strValue . '" maxlength="1" /></td>';
-		$arrSeparator[] = '</tr>';
-		$arrSeparator[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('separator_options'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_separator',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrSeparator),0,0);
-		$strOutput .= $this->pObj->objDoc->divider(10);
-		return $strOutput;
-	}
-	
-	/**
-	 * Build section to select which fields from fe_user table will be included in the export file
-	 *
-	 * @return	string	HTML containing the section
-	 */
-	function sectionUserFields() {
-		global $LANG,$TCA;
-		$arrUserFields[] = '<p>'.$LANG->getLL('fe_users_explain').'</p>';
-		$arrUserFields[] = '<table>';
-		$intColCount = 0;
-		
-		if (is_array($TCA['fe_users']))	{
-			foreach ($TCA['fe_users']['columns'] as $strColName=>$arrCol) {
-				if ($arrCol['label'] && !in_array($strColName,array('usergroup','lockToDomain','disable','starttime','endtime','TSconfig'))) {
-					$arrUserFields[] = (!$intColCount?'<tr>':'').'<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[fe_users]['.$strColName.']" value="1" /></td><td width="50%">'.ereg_replace(":$","",trim($GLOBALS['LANG']->sL($arrCol['label']))).'</td>'.($intColCount?'</tr>':'');
-					$intColCount = $intColCount?0:1;
-				}
-			}
-			if ($intColCount) {
-				$arrUserFields[] = '<td colspan="2">&nbsp;</td></tr>';
-			}
-		}
-		$arrUserFields[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('fe_users'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_user_information',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrUserFields),0,0);
-		$strOutput .= $this->pObj->objDoc->divider(10);
-		return $strOutput;
-	}
-	
-	/**
-	 * Build section where user can select the type of export for option groups
-	 *
-	 * @return	string	HTML containing the section
-	 */
-	function sectionScoring() {
-		global $LANG;
-		$arrScoring[] = '<p>'.$LANG->getLL('scoring_explain').'</p>';
-		$arrScoring[] = '<table>';
-		$arrScoring[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[scoring]" value="1" checked="checked" /></td><td>'.$LANG->getLL('scoring_combine').'</td></tr>';
-		$arrScoring[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[scoring]" value="0" /></td><td>'.$LANG->getLL('scoring_notCombine').'</td></tr>';
-		$arrScoring[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('scoring'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_scoring',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrScoring),0,0);
-		$strOutput .= $this->pObj->objDoc->divider(10);
-		return $strOutput;
-	}
-	
-	/**
-	 * Build section where user can provide a filename for the export file
-	 *
-	 * @return	string	HTML containing the section
-	 */
-	function sectionSave() {
-		global $LANG;
-		$strTitle = str_replace(' ', '', $this->arrPageInfo['title']);
-		$strFileName = $this->arrModParameters['filename']?$this->arrModParameters['filename']:'res_'.$strTitle.'_'.date('dmy-Hi').'.csv';
-		$arrFileName[] = '<p>'.$LANG->getLL('save_filename').'&nbsp;<input type="text" name="'.$this->pObj->strExtKey.'[filename]" value="'.$strFileName.'" />&nbsp;<input type="submit" name="'.$this->pObj->strExtKey.'[submit]" value="'.$LANG->getLL('save_submit').'" /></p>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('save'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_save',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrFileName),0,0);
-		return $strOutput;
-	}
-	
-	/**
-	 * Do a validation on the form
-	 *
-	 * @return	boolean		True if fields are correct
-	 */
-	function checkForm() {
-		global $LANG;
-		$this->objFileManagement = t3lib_div::makeInstance('t3lib_basicFileFunctions');
-		$boolOutput = TRUE;
-		if (isset($this->arrModParameters['submit'])) {
-			if ($this->arrModParameters['rows']=='selected') {
-				if ($this->arrModParameters['configuration']['from']=='' || $this->arrModParameters['configuration']['till']=='') {
-					$this->arrError['configuration'] = $LANG->getLL('error_configuration_empty');
-				} elseif ($this->arrModParameters['configuration']['from'] > $this->arrModParameters['configuration']['till']) {
-					$this->arrError['configuration'] = $LANG->getLL('error_configuration_values');
-				} elseif (!is_numeric($this->arrModParameters['configuration']['from']) || !is_numeric($this->arrModParameters['configuration']['till'])) {
-					$this->arrError['configuration'] = $LANG->getLL('error_configuration_numeric');
-				} elseif ($this->arrModParameters['configuration']['from']<=0 || $this->arrModParameters['configuration']['till']>$this->intTotalRows) {
-					$this->arrError['configuration'] = $LANG->getLL('error_configuration_range');
-				}
-			}
-			if (isset($this->arrModParameters['separator']['other']) && !$this->arrModParameters['separator']['other_value']) {
-				$this->arrError['separator'] = $LANG->getLL('error_separator');
-			}
-			if (!$this->arrModParameters['filename']) {
-				$this->arrError['filename'] = $LANG->getLL('error_filename');
-			} else {
-				$this->arrModParameters['filename'] = $this->objFileManagement->cleanFileName($this->arrModParameters['filename']);
-			}
-		} else {
-			$boolOutput = FALSE;
-		}
-		if (isset($this->arrError)) {
-			$boolOutput = FALSE;
-		}
-		return $boolOutput;
 	}
 	
 	/**
@@ -396,7 +228,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrResultsConf['selectFields'] = 'uid,user,ip,begintstamp,endtstamp,finished';
     	$arrResultsConf['where'] = '1=1';
     	$arrResultsConf['where'] .= ' AND pid=' . intval($this->pObj->id);
-		$arrResultsConf['where'] .= !isset($this->arrModParameters['unfinished'])?'':' AND finished=1';
+		$arrResultsConf['where'] .= isset($this->arrModParameters['unfinished'])?'':' AND finished=1';
 		$arrResultsConf['where'] .= t3lib_BEfunc::BEenableFields($this->pObj->strResultsTable);
 		$arrResultsConf['where'] .= t3lib_BEfunc::deleteClause($this->pObj->strResultsTable);
 		$arrResultsConf['orderBy'] = 'uid ASC';
@@ -436,6 +268,212 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$mixOutput = fwrite($this->fileHandle, $strWrite);
 		return $mixOutput;
 	}
+
+    /**********************************
+	 *
+	 * Checking functions
+	 *
+	 **********************************/
+
+	/**
+	 * Do a validation on the form
+	 *
+	 * @return	boolean		True if fields are correct
+	 */
+	function checkForm() {
+		global $LANG;
+		$this->objFileManagement = t3lib_div::makeInstance('t3lib_basicFileFunctions');
+		$boolOutput = TRUE;
+		if (isset($this->arrModParameters['submit'])) {
+			if ($this->arrModParameters['rows']=='selected') {
+				if ($this->arrModParameters['configuration']['from']=='' || $this->arrModParameters['configuration']['till']=='') {
+					$this->arrError['configuration'] = $LANG->getLL('error_configuration_empty');
+				} elseif ($this->arrModParameters['configuration']['from'] > $this->arrModParameters['configuration']['till']) {
+					$this->arrError['configuration'] = $LANG->getLL('error_configuration_values');
+				} elseif (!is_numeric($this->arrModParameters['configuration']['from']) || !is_numeric($this->arrModParameters['configuration']['till'])) {
+					$this->arrError['configuration'] = $LANG->getLL('error_configuration_numeric');
+				} elseif ($this->arrModParameters['configuration']['from']<=0 || $this->arrModParameters['configuration']['till']>$this->intTotalRows) {
+					$this->arrError['configuration'] = $LANG->getLL('error_configuration_range');
+				}
+			}
+			if (isset($this->arrModParameters['separator']['other']) && !$this->arrModParameters['separator']['other_value']) {
+				$this->arrError['separator'] = $LANG->getLL('error_separator');
+			}
+			if (!$this->arrModParameters['filename']) {
+				$this->arrError['filename'] = $LANG->getLL('error_filename');
+			} else {
+				$this->arrModParameters['filename'] = $this->objFileManagement->cleanFileName($this->arrModParameters['filename']);
+			}
+		} else {
+			$boolOutput = FALSE;
+		}
+		if (isset($this->arrError)) {
+			$boolOutput = FALSE;
+		}
+		return $boolOutput;
+	}
+		 
+	/**********************************
+	 *
+	 * Rendering functions
+	 *
+	 **********************************/
+	 	 	
+	/**
+	 * Section which shows the main error message if any after submitting the form
+	 *
+	 * @return	string	HTML containing the section
+	 */
+	function sectionError() {
+		global $LANG;
+		if (isset($this->arrError)) {
+			$strTemp = '<p><span class="typo3-red">'.$LANG->getLL('error_text').'</span></p>';
+			$strTemp .= '<ul class="typo3-red"><li>'.implode('</li>'.chr(13).'<li>',$this->arrError).'</li></ul>';
+			$strOutput = $this->pObj->objDoc->section($LANG->getLL('error'),$strTemp,0,1);
+		return $strOutput;
+		}
+	}
+	
+	/**
+	 * Build section to define which rows are exported
+	 *
+	 * @return	string	HTML containing the section
+	 */
+	function sectionConfiguration() {
+		global $LANG;
+		$arrOptions[] = '<table>';
+		$arrOptions[] = '<tr>';
+		$strChecked = (!isset($this->arrModParameters['rows']) || $this->arrModParameters['rows']=='all')?'checked="checked"':'';
+		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[rows]" type="radio" value="all"' . $strChecked . ' /></td>';
+		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_all').' ('.$this->arrResults['finished'].')</td>';
+		$arrOptions[] = '</tr>';
+		$arrOptions[] = '<tr>';
+		$strChecked = ($this->arrModParameters['rows']=='selected')?'checked="checked"':'';
+		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[rows]" type="radio" value="selected"' . $strChecked . ' /></td>';
+		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_selected').'</td>';
+		$arrOptions[] = '</tr>';
+		$arrOptions[] = '<tr>';
+		$arrOptions[] = '<td>&nbsp;</td>';
+		$arrOptions[] = '<td>'.$LANG->getLL('export_from').'</td>';
+		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][from]" value="' . $this->arrModParameters['configuration']['from'] . '" /></td>';
+		$arrOptions[] = '<td>'.$LANG->getLL('export_till').'</td>';
+		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][till]" value="' . $this->arrModParameters['configuration']['till'] . '" /></td>';
+		$arrOptions[] = '</tr>';
+		$arrOptions[] = '<tr>';
+		$strChecked = (isset($this->arrModParameters['unfinished']))?'checked="checked"':'';
+		$arrOptions[] = '<td><input name="'.$this->pObj->strExtKey.'[unfinished]" type="checkbox" value="1"' . $strChecked . ' /></td>';
+		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_unfinished').' ('.$this->arrResults['unfinished'].')</td>';
+		$arrOptions[] = '</tr>';
+		$arrOptions[] = '</table>';
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('export_configuration'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_configuration',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrOptions),0,1);
+		$strOutput .= $this->pObj->objDoc->divider(10);
+		return $strOutput;
+	}
+	
+	/**
+	 * Build section to configure the text separators and delimiter
+	 *
+	 * @return	string	HTML containing the section
+	 */
+	function sectionSeparator() {
+		global $LANG;
+		$arrSeparator[] = '<table>';
+		$arrSeparator[] = '<tr>';
+		$strChecked = (isset($this->arrModParameters['separator']['tab']))?'checked="checked"':'';
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][tab]" value="1"' . $strChecked . ' /></td><td width="25%">'.$LANG->getLL('separator_tab').'</td>';
+		if (!isset($this->arrModParameters['submit'])) {
+			$strChecked = ' checked="checked"';
+		} else {
+			$strChecked = (isset($this->arrModParameters['separator']['comma']))?' checked="checked"':'';
+		}
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][comma]" value="1"' . $strChecked . ' /></td><td width="25%">'.$LANG->getLL('separator_comma').'</td>';
+		$strChecked = (isset($this->arrModParameters['separator']['other']))?' checked="checked"':'';
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][other]" value="1"' . $strChecked . ' /></td><td width="25%">'.$LANG->getLL('separator_other').'</td>';
+		$strValue = $this->arrModParameters['separator']['other_value']!=''?$this->arrModParameters['separator']['other_value']:'';
+		$arrSeparator[] = '<td width="25%"><input type="text" name="'.$this->pObj->strExtKey.'[separator][other_value]" value="' . $strValue . '" /></td>';
+		$arrSeparator[] = '</tr>';
+		$arrSeparator[] = '<tr>';
+		$strChecked = (isset($this->arrModParameters['separator']['semicolon']))?' checked="checked"':'';
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][semicolon]" value="1"' . $strChecked . ' /></td><td>'.$LANG->getLL('separator_semicolon').'</td>';
+		$strChecked = (isset($this->arrModParameters['separator']['space']))?' checked="checked"':'';
+		$arrSeparator[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[separator][space]" value="1"' . $strChecked . ' /></td><td>'.$LANG->getLL('separator_space').'</td>';
+		$arrSeparator[] = '<td></td><td>'.$LANG->getLL('separator_delimiter').'</td>';
+		if (!isset($this->arrModParameters['submit'])) {
+			$strValue = '&quot;';
+		} else {
+			$strValue = $this->arrModParameters['separator']['delimiter']!=''?htmlspecialchars($this->arrModParameters['separator']['delimiter']):'';
+		}
+		$arrSeparator[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[separator][delimiter]" value="' . $strValue . '" maxlength="1" /></td>';
+		$arrSeparator[] = '</tr>';
+		$arrSeparator[] = '</table>';
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('separator_options'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_separator',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrSeparator),0,0);
+		$strOutput .= $this->pObj->objDoc->divider(10);
+		return $strOutput;
+	}
+	
+	/**
+	 * Build section to select which fields from fe_user table will be included in the export file
+	 *
+	 * @return	string	HTML containing the section
+	 */
+	function sectionUserFields() {
+		global $LANG,$TCA;
+		$arrUserFields[] = '<p>'.$LANG->getLL('fe_users_explain').'</p>';
+		$arrUserFields[] = '<table>';
+		$intColCount = 0;
+		if (is_array($TCA['fe_users']))	{
+			foreach ($TCA['fe_users']['columns'] as $strColName=>$arrCol) {
+				if ($arrCol['label'] && !in_array($strColName,array('usergroup','lockToDomain','disable','starttime','endtime','TSconfig'))) {
+					$arrUserFields[] = (!$intColCount?'<tr>':'').'<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[fe_users]['.$strColName.']" value="1" /></td><td width="50%">'.ereg_replace(":$","",trim($GLOBALS['LANG']->sL($arrCol['label']))).'</td>'.($intColCount?'</tr>':'');
+					$intColCount = $intColCount?0:1;
+				}
+			}
+			if ($intColCount) {
+				$arrUserFields[] = '<td colspan="2">&nbsp;</td></tr>';
+			}
+		}
+		$arrUserFields[] = '</table>';
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('fe_users'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_user_information',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrUserFields),0,0);
+		$strOutput .= $this->pObj->objDoc->divider(10);
+		return $strOutput;
+	}
+	
+	/**
+	 * Build section where user can select the type of export for option groups
+	 *
+	 * @return	string	HTML containing the section
+	 */
+	function sectionScoring() {
+		global $LANG;
+		$arrScoring[] = '<p>'.$LANG->getLL('scoring_explain').'</p>';
+		$arrScoring[] = '<table>';
+		$arrScoring[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[scoring]" value="1" checked="checked" /></td><td>'.$LANG->getLL('scoring_combine').'</td></tr>';
+		$arrScoring[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[scoring]" value="0" /></td><td>'.$LANG->getLL('scoring_notCombine').'</td></tr>';
+		$arrScoring[] = '</table>';
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('scoring'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_scoring',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrScoring),0,0);
+		$strOutput .= $this->pObj->objDoc->divider(10);
+		return $strOutput;
+	}
+	
+	/**
+	 * Build section where user can provide a filename for the export file
+	 *
+	 * @return	string	HTML containing the section
+	 */
+	function sectionSave() {
+		global $LANG;
+		$strTitle = str_replace(' ', '', $this->arrPageInfo['title']);
+		$strFileName = $this->arrModParameters['filename']?$this->arrModParameters['filename']:'res_'.$strTitle.'_'.date('dmy-Hi').'.csv';
+		$arrFileName[] = '<p>'.$LANG->getLL('save_filename').'&nbsp;<input type="text" name="'.$this->pObj->strExtKey.'[filename]" value="'.$strFileName.'" />&nbsp;<input type="submit" name="'.$this->pObj->strExtKey.'[submit]" value="'.$LANG->getLL('save_submit').'" /></p>';
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('save'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_save',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrFileName),0,0);
+		return $strOutput;
+	}
+
+    /**********************************
+	 *
+	 * Reading functions
+	 *
+	 **********************************/
 	
 	/**
 	 * Read the user information from the database
