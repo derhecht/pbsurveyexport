@@ -177,8 +177,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 
 			$strQuestion = $arrItem['question_alias']?$arrItem['question_alias']:$arrItem['question'];
 			if (!in_array($arrItem['question_type'],array(10,12,13,14))) {
-				if (in_array($arrItem['question_type'],array(1,2,3,4,5))) {
-					if ($this->arrModParameters['scoring']!=0 && $arrItem['question_type']!=1) {
+				if (in_array($arrItem['question_type'],array(1,2,3,4,5,23))) {
+					if ($this->arrModParameters['scoring']!=0 && ($arrItem['question_type']!=1 && $arrItem['question_type']!=23)) {
 						$arrColNames[$intQuestionKey] = $strQuestion;
 					} elseif (!in_array($arrItem['question_type'],array(4,5))) {
 						foreach($arrItem['answers'] as $intAnswerKey=>$strAnswer) {
@@ -517,7 +517,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		while ($arrAnswersRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)){
 			$arrItem = $this->pObj->arrSurveyItems[$arrAnswersRow['question']];
 			$strKey = $arrAnswersRow['question'];
-			if ($arrItem['question_type']==1) {
+			if (in_array($arrItem['question_type'],array(1,23))) {
 				$strKey .= '_'.$arrAnswersRow['row'];
 			} 
 			if (in_array($arrItem['question_type'],array(2,3,4,5))) {
@@ -539,7 +539,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			}			
 			if (in_array($arrItem['question_type'],array(7,9,10,11,12,13,14,15,16)) || ($arrItem['question_type']==1 && $arrAnswersRow['row']<0) || ($arrItem['question_type']==3 && !is_numeric($arrAnswersRow['answer']))) {
 				$strAnswer = $arrAnswersRow['answer'];
-			} elseif (in_array($arrItem['question_type'],array(1,2,3,6,8))) {
+			} elseif (in_array($arrItem['question_type'],array(1,2,3,6,8,23))) {
 				if ($arrItem['answers'][$arrAnswersRow['answer']]['points']!='') {
 					$strAnswer = $arrItem['answers'][$arrAnswersRow['answer']]['points'];
 				} else { // Er zijn geen punten
