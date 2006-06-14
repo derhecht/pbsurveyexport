@@ -1,3 +1,6 @@
+2006-05-21 - Patrick Broens <patrick@patrickbroens.nl>
+ ~ Change CRLF to space in answers for proper csv line
+
 2006-05-15 - Patrick Broens <patrick@patrickbroens.nl>
  + Added question type 23, Choice - Multiple Answers (Selectbox)
 

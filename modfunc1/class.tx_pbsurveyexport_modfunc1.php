@@ -552,7 +552,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 					$strAnswer = 1;
 				}
 			}
-			$this->arrCsvRow[$strKey] = $strAnswer;
+			$this->arrCsvRow[$strKey] = str_replace(array(chr(10),chr(13)), " ", $strAnswer);
 		}
 	}
 }
