@@ -222,7 +222,6 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 */
 	function writeCsvResult() {
 		global $LANG;
-		$intCounter = 0;
 		$arrTemp = array();
 		$arrResultsConf['selectFields'] = 'uid,user,ip,begintstamp,endtstamp,finished';
     	$arrResultsConf['where'] = '1=1';
@@ -231,11 +230,11 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrResultsConf['where'] .= t3lib_BEfunc::BEenableFields($this->pObj->strResultsTable);
 		$arrResultsConf['where'] .= t3lib_BEfunc::deleteClause($this->pObj->strResultsTable);
 		$arrResultsConf['orderBy'] = 'uid ASC';
-		$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery($arrResultsConf['selectFields'],$this->pObj->strResultsTable,$arrResultsConf['where'],'',$arrResultsConf['orderBy'],'');
 		if ($this->arrModParameters['rows']=='selected') {
-			$boolSeek = $GLOBALS['TYPO3_DB']->sql_data_seek($dbRes,($this->arrModParameters['configuration']['from'] - 1));
+			$arrResultsConf['limit'] = $this->arrModParameters['configuration']['from'] . ',' . $this->arrModParameters['configuration']['count'];
 		}
-		while (($arrResultRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)) && $intCounter<=$this->intTotalRows){
+		$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery($arrResultsConf['selectFields'],$this->pObj->strResultsTable,$arrResultsConf['where'],'',$arrResultsConf['orderBy'],$arrResultsConf['limit']);
+		while ($arrResultRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)){
 			$this->arrCsvRow = $this->arrCsvCols;
 			$this->arrCsvRow['uid'] = $arrResultRow['uid'];
 			if ($this->arrModParameters['unfinished']) {
@@ -246,7 +245,6 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			$this->arrCsvRow['endtstamp'] = t3lib_BEfunc::datetime($arrResultRow['endtstamp']);
 			$this->readUser($arrResultRow['user']);
 			$this->readAnswers($arrResultRow['uid']);
-            $intCounter++;
 			$mixOutput = $this->writeCsvLine($this->arrCsvRow);
 			if (!$mixOutput) {
 				break;
@@ -285,13 +283,11 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$boolOutput = TRUE;
 		if (isset($this->arrModParameters['submit'])) {
 			if ($this->arrModParameters['rows']=='selected') {
-				if ($this->arrModParameters['configuration']['from']=='' || $this->arrModParameters['configuration']['till']=='') {
+				if ($this->arrModParameters['configuration']['from']=='' || $this->arrModParameters['configuration']['count']=='') {
 					$this->arrError['configuration'] = $LANG->getLL('error_configuration_empty');
-				} elseif ($this->arrModParameters['configuration']['from'] > $this->arrModParameters['configuration']['till']) {
-					$this->arrError['configuration'] = $LANG->getLL('error_configuration_values');
-				} elseif (!is_numeric($this->arrModParameters['configuration']['from']) || !is_numeric($this->arrModParameters['configuration']['till'])) {
+				} elseif (!is_numeric($this->arrModParameters['configuration']['from']) || !is_numeric($this->arrModParameters['configuration']['count'])) {
 					$this->arrError['configuration'] = $LANG->getLL('error_configuration_numeric');
-				} elseif ($this->arrModParameters['configuration']['from']<=0 || $this->arrModParameters['configuration']['till']>$this->intTotalRows) {
+				} elseif ($this->arrModParameters['configuration']['from']<0 || $this->arrModParameters['configuration']['from']>$this->intTotalRows) {
 					$this->arrError['configuration'] = $LANG->getLL('error_configuration_range');
 				}
 			}
@@ -355,8 +351,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrOptions[] = '<td>&nbsp;</td>';
 		$arrOptions[] = '<td>'.$LANG->getLL('export_from').'</td>';
 		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][from]" value="' . $this->arrModParameters['configuration']['from'] . '" /></td>';
-		$arrOptions[] = '<td>'.$LANG->getLL('export_till').'</td>';
-		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][till]" value="' . $this->arrModParameters['configuration']['till'] . '" /></td>';
+		$arrOptions[] = '<td>'.$LANG->getLL('export_count').'</td>';
+		$arrOptions[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[configuration][count]" value="' . $this->arrModParameters['configuration']['count'] . '" /></td>';
 		$arrOptions[] = '</tr>';
 		$arrOptions[] = '<tr>';
 		$strChecked = (isset($this->arrModParameters['unfinished']))?'checked="checked"':'';
