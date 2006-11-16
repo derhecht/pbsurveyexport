@@ -1,3 +1,6 @@
+2006-10-27 - Patrick Broens <patrick@patrickbroens.nl>
+ + Added language id to export from results table for multilanguage surveys
+
 2006-05-21 - Patrick Broens <patrick@patrickbroens.nl>
  ~ Changed the way the limit is handled when exporting only a part of the records. Now it is a true SQL limit
 

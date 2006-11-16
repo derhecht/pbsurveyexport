@@ -80,7 +80,6 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 */
 	function main()	{
 		global $BE_USER;
-		$this->checkForm();
 		if ($this->checkForm()) {
 			$this->buildCsv();
 		}
@@ -167,6 +166,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrColNames['ip'] = $LANG->getLL('ip-address');
 		$arrColNames['begintstamp'] = $LANG->getLL('begintstamp');
 		$arrColNames['endtstamp'] = $LANG->getLL('endtstamp');
+		$arrColNames['language'] = $LANG->getLL('language');
 		if (isset($this->arrModParameters['fe_users'])) {
 			$arrUserKeys = array_keys($this->arrModParameters['fe_users']);
 			foreach ($arrUserKeys as $strColumn) {
@@ -223,7 +223,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	function writeCsvResult() {
 		global $LANG;
 		$arrTemp = array();
-		$arrResultsConf['selectFields'] = 'uid,user,ip,begintstamp,endtstamp,finished';
+		$arrResultsConf['selectFields'] = 'uid,user,ip,begintstamp,endtstamp,language_uid,finished';
     	$arrResultsConf['where'] = '1=1';
     	$arrResultsConf['where'] .= ' AND pid=' . intval($this->pObj->id);
 		$arrResultsConf['where'] .= isset($this->arrModParameters['unfinished'])?'':' AND finished=1';
@@ -243,6 +243,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			$this->arrCsvRow['ip'] = $arrResultRow['ip'];
 			$this->arrCsvRow['begintstamp'] =  t3lib_BEfunc::datetime($arrResultRow['begintstamp']);
 			$this->arrCsvRow['endtstamp'] = t3lib_BEfunc::datetime($arrResultRow['endtstamp']);
+			$this->arrCsvRow['language'] = $arrResultRow['language_uid'];
 			$this->readUser($arrResultRow['user']);
 			$this->readAnswers($arrResultRow['uid']);
 			$mixOutput = $this->writeCsvLine($this->arrCsvRow);

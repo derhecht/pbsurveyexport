@@ -62,6 +62,7 @@
 			<label index="ip-address">IP Address</label>
 			<label index="begintstamp">Start</label>
 			<label index="endtstamp">End</label>
+			<label index="language">Language</label>
 		</languageKey>
 	</data>
 </T3locallang>
