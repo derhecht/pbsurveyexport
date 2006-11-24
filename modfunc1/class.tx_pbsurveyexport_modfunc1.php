@@ -43,6 +43,10 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	//var $arrError = array(); // Contains errormessages if validation of form failed.
 	var $fileHandle; // Handle to identify filestream to temporary file.
 	var $strSeparator; // Separator string.
+	var $boolChangeCodingFormat = false;	// True if output coding format is different than database, false if not
+	var $boolReplaceBlankAnswers = false;	// True if blank answers of closed questions must be replaced by string $strReplacementForBlankAnswers
+	var $strReplacementForBlankAnswers = '0';	// Replacement string for blank answers
+
 	
     /**********************************
 	 *
@@ -80,6 +84,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 */
 	function main()	{
 		global $BE_USER;
+		$this->checkForm();
 		if ($this->checkForm()) {
 			$this->buildCsv();
 		}
@@ -98,6 +103,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strOutput .= $this->sectionError();
 		$strOutput .= $this->sectionConfiguration();
 		$strOutput .= $this->sectionSeparator();
+		$strOutput .= $this->sectionFormat();
+		$strOutput .= $this->sectionBlankAnswers();
 		$strOutput .= $this->sectionUserFields();
 		$strOutput .= $this->sectionScoring();
 		$strOutput .= $this->sectionSave();			
@@ -115,6 +122,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		t3lib_div::unlink_tempfile($strFilepath);
 		if ($this->fileHandle = fopen($strFilepath,'ab')) {
 			$this->getSeparator();
+			$this->getCodingFormat();
+			$this->getBlankAnswersProcessing();
 			$arrError['column'] = $this->writeCsvColumnNames();
 			$arrError['result'] = $this->writeCsvResult();
 			$arrError['close'] = fclose($this->fileHandle);
@@ -140,6 +149,20 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	}
 	
 	/**
+	 * Replace blank answers of some questions (checked types) by a specific string
+	 *
+	 * @param	 integer		uid of the question in database
+	 * @return   void
+	 */
+	function replaceBlankAnswers() {
+		foreach($this->arrCsvRow as $intKey => $strValue) {
+			if(is_int($intKey) && t3lib_div::inList('1,23,2,3,4,5', $this->pObj->arrSurveyItems[$intKey]['question_type']) && $strValue == '')	{
+				$this->arrCsvRow[$intKey] = $this->strReplacementForBlankAnwers;
+			}
+		}
+	}
+	
+	/**
 	 * Builds the separator string according to the form input
 	 *
 	 * @return   void      
@@ -150,6 +173,27 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$this->strSeparator .= $this->arrModParameters['separator']['semicolon']?';':'';
 		$this->strSeparator .= $this->arrModParameters['separator']['space']?' ':'';
 		$this->strSeparator .= $this->arrModParameters['separator']['other']?$this->arrModParameters['separator']['other_value']:'';
+	}
+	
+	/**
+	 * Defines output characters coding format : UTF-8 or ISO-8859-1
+	 *
+	 * @return   void      
+	 */
+	function getCodingFormat() {
+		$this->boolChangeCodingFormat = $this->arrModParameters['chgFormat'];
+	}
+	
+	/**
+	 * Defines parameters of blank answers processing
+	 *
+	 * @return   void     
+	 */
+	function getBlankAnswersProcessing() {
+		if(isset($this->arrModParameters['replBlank']['bool']))	{
+			$this->boolReplaceBlankAnswers = $this->arrModParameters['replBlank']['bool'];
+			$this->strReplacementForBlankAnswers = $this->arrModParameters['replBlank']['value']?$this->arrModParameters['replBlank']['value']:'0';
+		}
 	}
 	
 	/**
@@ -190,7 +234,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 						$arrColNames[$intQuestionKey.'_0'] = $strQuestion.'('.$strNo.')';
 						$arrColNames[$intQuestionKey.'_1'] = $strQuestion.'('.$strYes.')';
 					}
-					if (isset($arrItem['answers_allow_additional'])) {
+					if (isset($arrItem['answers_allow_additional']) && $arrItem['answers_allow_additional'] > 0) {
 						$arrColNames[$intQuestionKey.'_-1'] = $strQuestion.'('.$LANG->getLL('additional').')';
 					}
 				} else { // 6,7,8,9,11,15,16
@@ -245,7 +289,10 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			$this->arrCsvRow['endtstamp'] = t3lib_BEfunc::datetime($arrResultRow['endtstamp']);
 			$this->arrCsvRow['language'] = $arrResultRow['language_uid'];
 			$this->readUser($arrResultRow['user']);
+				// Note: Dans le cas o� il n'y a pas de donn�es ne ram�ne rien
 			$this->readAnswers($arrResultRow['uid']);
+			if($this->boolReplaceBlankAnswers)
+				$this->replaceBlankAnswers();
 			$mixOutput = $this->writeCsvLine($this->arrCsvRow);
 			if (!$mixOutput) {
 				break;
@@ -263,6 +310,10 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 */
 	function writeCsvLine($arrInput) {
 	    $strWrite = t3lib_div::csvValues($arrInput,$this->strSeparator,$this->arrModParameters['separator']['delimiter']).chr(10);
+	    
+		if($GLOBALS["TYPO3_CONF_VARS"]["BE"]["forceCharset"] = 'utf-8' && $this->boolChangeCodingFormat)
+	    	$strWrite = utf8_decode($strWrite);
+	
 		$mixOutput = fwrite($this->fileHandle, $strWrite);
 		return $mixOutput;
 	}
@@ -431,6 +482,48 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrUserFields[] = '</table>';
 		$strOutput = $this->pObj->objDoc->section($LANG->getLL('fe_users'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_user_information',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrUserFields),0,0);
 		$strOutput .= $this->pObj->objDoc->divider(10);
+		return $strOutput;
+	}
+	
+	/**
+	 * Build section where user can process blank answers
+	 *
+	 * @return	string	HTML containing the section
+	 */
+	function sectionBlankAnswers() {
+		global $LANG;
+		$strOutput = "";
+		$arrBlankAnswers[] = '<p>'.$LANG->getLL('blankAnswers_explain').'</p>';
+		$arrBlankAnswers[] = '<table>';
+		$arrBlankAnswers[] = '<tr>';
+		$strChecked = (isset($this->boolReplaceBlankAnswers) && $this->boolReplaceBlankAnswers)?' checked="checked"':'';
+		$arrBlankAnswers[] = '<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[replBlank][bool]" value="1"' . $strChecked . ' /></td><td>'.$LANG->getLL('blankAnswers_replacement').'</td>';
+		$strValue = $this->strReplacementForBlankAnswers!=''?$this->strReplacementForBlankAnswers:'';
+		$arrBlankAnswers[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[replBlank][value]" value="' . $strValue . '" /></td>';
+		$arrBlankAnswers[] = '</tr>';
+		$arrBlankAnswers[] = '</table>';
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('blankAnswers'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_blank',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrBlankAnswers),0,0);
+		$strOutput .= $this->pObj->objDoc->divider(10);
+		return $strOutput;
+	}
+	
+	/**
+	 * Build section where user can select the export output format if the database is coded in UTF-8
+	 *
+	 * @return	string	HTML containing the section
+	 */
+	function sectionFormat() {
+		global $LANG;
+		$strOutput = "";
+		if($GLOBALS["TYPO3_CONF_VARS"]["BE"]["forceCharset"] = 'utf-8')	{
+			$arrFormat[] = '<p>'.$LANG->getLL('format_explain').'</p>';
+			$arrFormat[] = '<table>';
+			$arrFormat[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[chgFormat]" value="0" checked="checked" /></td><td>'.$LANG->getLL('format_utf8').'</td></tr>';
+			$arrFormat[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[chgFormat]" value="1" /></td><td>'.$LANG->getLL('format_iso').'</td></tr>';
+			$arrFormat[] = '</table>';
+			$strOutput = $this->pObj->objDoc->section($LANG->getLL('format'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_format',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrFormat),0,0);
+			$strOutput .= $this->pObj->objDoc->divider(10);
+		}
 		return $strOutput;
 	}
 	

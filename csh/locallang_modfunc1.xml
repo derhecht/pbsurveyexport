@@ -42,6 +42,14 @@ A lot of extensions are available which extend the frontend users table with ext
 			<label index="export_user_information.seeAlso">xEXT_pbsurvey</label>
 			<label index="export_user_information.image"></label>
 			<label index="export_user_information.image_descr"></label>
+			<label index="export_format.alttitle">Export: Output coding format</label>
+			<label index="export_format.description">Defining output coding format.</label>
+			<label index="export_format.details">If your database is coded in UTF-8, you could be interested to export your data in ISO-8859-1 (common format used under Windows).</label>
+			<label index="export_format.image"></label>
+			<label index="export_blank.alttitle">Export: Replace blank answers</label>
+			<label index="export_blank.description">Defining a replacement string for blank answers.</label>
+			<label index="export_blank.details">If answers to your closed questions are not required, you could be interested to export a specific value for blank answers.</label>
+			<label index="export_blank.image"></label>
 			<label index="export_scoring.alttitle">Export: Scoring &amp; Radio button groups</label>
 			<label index="export_scoring.description">Combining rows to minimize the amount of columns.</label>
 			<label index="export_scoring.details">When having a large survey, you end up with a lot of columns. Normally for each answer to a question a new column is made. This is unneccessary for questions where only one answer can be provided.

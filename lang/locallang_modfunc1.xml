@@ -42,6 +42,13 @@
 			<label index="separator_delimiter">Text delimiter</label>
 			<label index="fe_users">User information</label>
 			<label index="fe_users_explain">Check the fields of the user information you want to include as columns in the export file.</label>
+			<label index="format">Output format</label>
+			<label index="format_explain">Choose output coding format (enabled only if your database is coded in UTF-8).</label>
+			<label index="format_utf8">UTF-8</label>
+			<label index="format_iso">ISO-8859-1</label>
+			<label index="blankAnswers">Blank answers processing</label>
+			<label index="blankAnswers_explain">Check the box if you want to replace blank answers of closed questions by a custom string ('0' by default).</label>
+			<label index="blankAnswers_replacement">Replacement string</label>
 			<label index="scoring">Scoring &amp; radio button groups</label>
 			<label index="scoring_explain">Choose whether to combine or not combine columns of questions where only one answer can be provided.</label>
 			<label index="scoring_notCombine">Do not combine columns</label>
