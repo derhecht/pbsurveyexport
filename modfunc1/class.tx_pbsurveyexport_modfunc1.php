@@ -129,6 +129,9 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			$arrError['close'] = fclose($this->fileHandle);
 			t3lib_div::fixPermissions($strFilepath);
 			if (!in_array(FALSE,$arrError)) {
+				header('Pragma: public');
+				header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+				header('Expires: 0');
 				header('Content-Disposition: attachment; filename='.$this->arrModParameters['filename'].'');
 				header('Content-type: x-application/octet-stream');
 				header('Content-Transfer-Encoding: binary');
@@ -289,7 +292,6 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			$this->arrCsvRow['endtstamp'] = t3lib_BEfunc::datetime($arrResultRow['endtstamp']);
 			$this->arrCsvRow['language'] = $arrResultRow['language_uid'];
 			$this->readUser($arrResultRow['user']);
-				// Note: Dans le cas o� il n'y a pas de donn�es ne ram�ne rien
 			$this->readAnswers($arrResultRow['uid']);
 			if($this->boolReplaceBlankAnswers)
 				$this->replaceBlankAnswers();

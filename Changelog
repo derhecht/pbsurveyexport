@@ -1,3 +1,6 @@
+2007-06-01 - Patrick Broens <patrick@patrickbroens.nl>
+ ~ Change in the file header of export file. Download didn't always work
+
 2006-11-24 - Patrick Broens <patrick@patrickbroens.nl>
  + Added output coding format if database is coded in utf-8
  + Added option for blank answer replacement string
