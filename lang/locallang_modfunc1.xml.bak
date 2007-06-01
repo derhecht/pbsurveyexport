@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<description>Language labels of Questionaire export module</description>
+		<type>module</type>
+		<csh_table></csh_table>
+		<fileId>EXT:pbsurveyexport/lang/locallang_modfunc1.xml</fileId>
+		<ext_filename_template>EXT:pbsurveyexport/lang/###LANGKEY###.locallang_modfunc1.xml</ext_filename_template>
+		<labelContext type="array" />
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="moduleFunction">Export results</label>
+			<label index="title">Questionaire Export</label>
+			<label index="stats">Questionaire Statistics</label>
+			<label index="error">Error</label>
+			<label index="error_text">The following errors have occured:</label>
+			<label index="number_questions">Number of questions</label>
+			<label index="number_forms">Number of submitted forms</label>
+			<label index="export_configuration">Export configuration</label>
+			<label index="export_all">Export all rows</label>
+			<label index="export_selected">Export selected rows</label>
+			<label index="export_from">From row</label>
+			<label index="export_count">Number of rows</label>
+			<label index="export_unfinished">Include unfinished responses</label>
+			<label index="error_configuration_empty">Enter a value in 'From' and 'Number of rows' field.</label>
+			<label index="error_configuration_numeric">Enter a numeric value in 'From' and 'Number of rows' field.</label>
+			<label index="error_configuration_range">The value in the field 'From' is out of range.</label>
+			<label index="error_separator">Enter a value in the textfield 'Other'.</label>
+			<label index="error_filename">Enter a file name.</label>
+			<label index="error_fileopen">The file could not be opened to write to.</label>
+			<label index="error_filecolumn">The column names could not be written to the file.</label>
+			<label index="error_fileresult">A result could not be written to the file.</label>
+			<label index="error_fileclose">The file could not be closed.</label>
+			<label index="error_fileread">The file is not readable.</label>
+			<label index="separator_options">Separator options</label>
+			<label index="separator_tab">Tab</label>
+			<label index="separator_semicolon">Semicolon</label>
+			<label index="separator_comma">Comma</label>
+			<label index="separator_space">Space</label>
+			<label index="separator_other">Other</label>
+			<label index="separator_delimiter">Text delimiter</label>
+			<label index="fe_users">User information</label>
+			<label index="fe_users_explain">Check the fields of the user information you want to include as columns in the export file.</label>
+			<label index="scoring">Scoring &amp; radio button groups</label>
+			<label index="scoring_explain">Choose whether to combine or not combine columns of questions where only one answer can be provided.</label>
+			<label index="scoring_notCombine">Do not combine columns</label>
+			<label index="scoring_combine">Combine columns</label>
+			<label index="save">Save as</label>
+			<label index="save_filename">File name:</label>
+			<label index="save_submit">Save</label>
+			<label index="list_questions">List of questions</label>
+			<label index="additional">additional</label>
+			<label index="value_true">True</label>
+			<label index="value_false">False</label>
+			<label index="value_yes">Yes</label>
+			<label index="value_no">No</label>
+			<label index="crdate">Creation_date</label>
+			<label index="tstamp">Latest_change</label>
+			<label index="finished">Finished</label>
+			<label index="unfinished">Unfinished</label>
+			<label index="ip-address">IP Address</label>
+			<label index="begintstamp">Start</label>
+			<label index="endtstamp">End</label>
+			<label index="language">Language</label>
+		</languageKey>
+	</data>
+</T3locallang>

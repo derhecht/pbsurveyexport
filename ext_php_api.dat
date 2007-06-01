@@ -1,0 +1,59 @@
+a:2:{s:4:"meta";a:3:{s:5:"title";s:19:"Questionaire Export";s:5:"descr";s:61:"Backend Module Function 'Export' for the 'pbsurvey' extension";s:7:"options";a:2:{s:10:"usageCount";N;s:19:"includeCodeAbstract";N;}}s:5:"files";a:1:{s:14:"MD5_3769f89f13";a:4:{s:8:"filename";s:45:"modfunc1/class.tx_pbsurveyexport_modfunc1.php";s:8:"filesize";i:25552;s:6:"header";a:5:{s:4:"text";s:65:"
+
+Backend Module Function 'Export' for the 'pbsurvey' extension.
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"[type]";i:1;s:3:"...";}s:5:"other";a:3:{i:0;s:49:"@author Patrick Broens <patrick@patrickbroens.nl>";i:1;s:14:"@package TYPO3";i:2;s:26:"@subpackage pbsurveyexport";}s:11:"other_index";a:3:{s:7:"@author";a:1:{i:0;s:41:"Patrick Broens <patrick@patrickbroens.nl>";}s:8:"@package";a:1:{i:0;s:6:"TYPO3 ";}s:11:"@subpackage";a:1:{i:0;s:15:"pbsurveyexport ";}}}s:3:"DAT";a:18:{i:1;a:8:{s:6:"header";s:59:"class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {";s:5:"class";i:1;s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:5:{s:4:"text";s:65:"
+
+Backend Module Function 'Export' for the 'pbsurvey' extension.
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"[type]";i:1;s:3:"...";}s:5:"other";a:3:{i:0;s:49:"@author Patrick Broens <patrick@patrickbroens.nl>";i:1;s:14:"@package TYPO3";i:2;s:26:"@subpackage pbsurveyexport";}s:11:"other_index";a:3:{s:7:"@author";a:1:{i:0;s:41:"Patrick Broens <patrick@patrickbroens.nl>";}s:8:"@package";a:1:{i:0;s:6:"TYPO3 ";}s:11:"@subpackage";a:1:{i:0;s:15:"pbsurveyexport ";}}}s:7:"content";s:0:"";s:12:"content_size";i:650;s:13:"content_lines";i:14;s:6:"atLine";i:37;}i:3;a:8:{s:6:"header";s:29:"function init(&$pObj,$conf)	{";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:11:"sectionText";a:1:{i:0;s:23:"Configuration functions";}s:4:"cDat";a:3:{s:4:"text";s:30:"
+
+Initialization of the class
+";s:5:"param";a:2:{i:0;a:2:{i:0;s:6:"object";i:1;s:13:"Parent object";}i:1;a:2:{i:0;s:5:"array";i:1;s:19:"COnfiguration array";}}s:6:"return";a:2:{i:0;s:4:"void";i:1;s:0:"";}}s:7:"content";s:0:"";s:12:"content_size";i:504;s:13:"content_lines";i:14;s:6:"atLine";i:59;}i:5;a:8:{s:6:"header";s:17:"function main()	{";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:11:"sectionText";a:1:{i:0;s:17:"General functions";}s:4:"cDat";a:3:{s:4:"text";s:88:"
+
+Main function of the module.
+Define if form has to be shown or file has to be created
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"string";i:1;s:29:"HTML content for the function";}}s:7:"content";s:0:"";s:12:"content_size";i:274;s:13:"content_lines";i:11;s:6:"atLine";i:80;}i:7;a:7:{s:6:"header";s:26:"function moduleContent() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:31:"
+
+Generates the module content
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"string";i:1;s:27:"HTML Content for the module";}}s:7:"content";s:0:"";s:12:"content_size";i:278;s:13:"content_lines";i:9;s:6:"atLine";i:97;}i:9;a:7:{s:6:"header";s:21:"function buildCsv() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:32:"
+
+Export a comma separated file
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:4:"void";i:1;s:0:"";}}s:7:"content";s:0:"";s:12:"content_size";i:1044;s:13:"content_lines";i:29;s:6:"atLine";i:112;}i:11;a:7:{s:6:"header";s:25:"function getSeparator() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:58:"
+
+Builds the separator string according to the form input
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:4:"void";i:1;s:0:"";}}s:7:"content";s:0:"";s:12:"content_size";i:452;s:13:"content_lines";i:7;s:6:"atLine";i:147;}i:13;a:7:{s:6:"header";s:32:"function writeCsvColumnNames() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:54:"
+
+Write the column names as first row to the csv file
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:5:"mixed";i:1;s:42:"Number of bytes written, or FALSE on error";}}s:7:"content";s:0:"";s:12:"content_size";i:2589;s:13:"content_lines";i:56;s:6:"atLine";i:160;}i:15;a:7:{s:6:"header";s:27:"function writeCsvResult() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:50:"
+
+Write each result as a new line to the csv file
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:5:"mixed";i:1;s:42:"Number of bytes written, or FALSE on error";}}s:7:"content";s:0:"";s:12:"content_size";i:1723;s:13:"content_lines";i:35;s:6:"atLine";i:222;}i:17;a:7:{s:6:"header";s:34:"function writeCsvLine($arrInput) {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:38:"
+
+Write a single csv line to the file
+";s:5:"param";a:1:{i:0;a:2:{i:0;s:7:"integer";i:1;s:15:"Uid of the user";}}s:6:"return";a:2:{i:0;s:5:"mixed";i:1;s:42:"Number of bytes written, or FALSE on error";}}s:7:"content";s:0:"";s:12:"content_size";i:317;s:13:"content_lines";i:11;s:6:"atLine";i:264;}i:19;a:8:{s:6:"header";s:22:"function checkForm() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:11:"sectionText";a:1:{i:0;s:18:"Checking functions";}s:4:"cDat";a:3:{s:4:"text";s:30:"
+
+Do a validation on the form
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:7:"boolean";i:1;s:26:"True if fields are correct";}}s:7:"content";s:0:"";s:12:"content_size";i:1768;s:13:"content_lines";i:38;s:6:"atLine";i:281;}i:21;a:8:{s:6:"header";s:25:"function sectionError() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:11:"sectionText";a:1:{i:0;s:19:"Rendering functions";}s:4:"cDat";a:3:{s:4:"text";s:78:"
+
+Section which shows the main error message if any after submitting the form
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"string";i:1;s:27:"HTML containing the section";}}s:7:"content";s:0:"";s:12:"content_size";i:352;s:13:"content_lines";i:9;s:6:"atLine";i:325;}i:23;a:7:{s:6:"header";s:33:"function sectionConfiguration() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:50:"
+
+Build section to define which rows are exported
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"string";i:1;s:27:"HTML containing the section";}}s:7:"content";s:0:"";s:12:"content_size";i:2081;s:13:"content_lines";i:30;s:6:"atLine";i:340;}i:25;a:7:{s:6:"header";s:29:"function sectionSeparator() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:63:"
+
+Build section to configure the text separators and delimiter
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"string";i:1;s:27:"HTML containing the section";}}s:7:"content";s:0:"";s:12:"content_size";i:2772;s:13:"content_lines";i:35;s:6:"atLine";i:376;}i:27;a:7:{s:6:"header";s:30:"function sectionUserFields() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:94:"
+
+Build section to select which fields from fe_user table will be included in the export file
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"string";i:1;s:27:"HTML containing the section";}}s:7:"content";s:0:"";s:12:"content_size";i:1121;s:13:"content_lines";i:21;s:6:"atLine";i:417;}i:29;a:7:{s:6:"header";s:27:"function sectionScoring() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:75:"
+
+Build section where user can select the type of export for option groups
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"string";i:1;s:27:"HTML containing the section";}}s:7:"content";s:0:"";s:12:"content_size";i:760;s:13:"content_lines";i:11;s:6:"atLine";i:444;}i:31;a:7:{s:6:"header";s:24:"function sectionSave() {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:70:"
+
+Build section where user can provide a filename for the export file
+";s:5:"param";a:0:{}s:6:"return";a:2:{i:0;s:6:"string";i:1;s:27:"HTML containing the section";}}s:7:"content";s:0:"";s:12:"content_size";i:822;s:13:"content_lines";i:14;s:6:"atLine";i:461;}i:33;a:5:{s:6:"header";s:30:"function readUser($intInput) {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:11:"sectionText";a:1:{i:0;s:17:"Reading functions";}s:4:"cDat";a:3:{s:4:"text";s:46:"
+
+Read the user information from the database
+";s:5:"param";a:1:{i:0;a:2:{i:0;s:7:"integer";i:1;s:15:"uid of the user";}}s:6:"return";a:2:{i:0;s:4:"void";i:1;s:0:"";}}s:6:"atLine";i:482;}i:35;a:7:{s:6:"header";s:33:"function readAnswers($intInput) {";s:11:"parentClass";s:26:"tx_pbsurveyexport_modfunc1";s:4:"cDat";a:3:{s:4:"text";s:61:"
+
+Read the answers belonging to the result from the database
+";s:5:"param";a:1:{i:0;a:2:{i:0;s:7:"integer";i:1;s:17:"uid of the result";}}s:6:"return";a:2:{i:0;s:4:"void";i:1;s:0:"";}}s:7:"content";s:0:"";s:12:"content_size";i:2536;s:13:"content_lines";i:52;s:6:"atLine";i:509;}}}}}
