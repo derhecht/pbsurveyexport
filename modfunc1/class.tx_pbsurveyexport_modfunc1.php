@@ -217,7 +217,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		if (isset($this->arrModParameters['fe_users'])) {
 			$arrUserKeys = array_keys($this->arrModParameters['fe_users']);
 			foreach ($arrUserKeys as $strColumn) {
-				$arrColNames[$strColumn] = ereg_replace(":$","",trim($GLOBALS['LANG']->sL($TCA['fe_users']['columns'][$strColumn]['label'])));
+				$arrColNames[$strColumn] = preg_replace("/:$/", "", trim($GLOBALS['LANG']->sL($TCA['fe_users']['columns'][$strColumn]['label'])));
 			}
 		}
 		foreach ($this->pObj->arrSurveyItems as $intQuestionKey=>$arrItem) {
@@ -473,7 +473,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		if (is_array($TCA['fe_users']))	{
 			foreach ($TCA['fe_users']['columns'] as $strColName=>$arrCol) {
 				if ($arrCol['label'] && !in_array($strColName,array('usergroup','lockToDomain','disable','starttime','endtime','TSconfig'))) {
-					$arrUserFields[] = (!$intColCount?'<tr>':'').'<td><input type="checkbox" name="'.$this->pObj->strExtKey.'[fe_users]['.$strColName.']" value="1" /></td><td width="50%">'.ereg_replace(":$","",trim($GLOBALS['LANG']->sL($arrCol['label']))).'</td>'.($intColCount?'</tr>':'');
+					$arrUserFields[] = (!$intColCount ? '<tr>': '') . '<td><input type="checkbox" name="' . $this->pObj->strExtKey . '[fe_users][' . $strColName . ']" value="1" /></td><td width="50%">' . preg_replace("/:$/", "", trim($GLOBALS['LANG']->sL($arrCol['label']))) . '</td>' . ($intColCount ? '</tr>' : '');
 					$intColCount = $intColCount?0:1;
 				}
 			}
