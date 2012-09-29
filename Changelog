@@ -1,3 +1,6 @@
+2012-09-29 - Patrick Broens <patrick@patrickbroens.nl>
+ + Added "Delete results" functionality to module
+
 2007-06-01 - Patrick Broens <patrick@patrickbroens.nl>
  ~ Change in the file header of export file. Download didn't always work
 
