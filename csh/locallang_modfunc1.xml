@@ -5,8 +5,6 @@
 		<type>CSH</type>
 		<fileId>EXT:pbsurveyexport/csh/locallang_modfunc1.xml</fileId>
 		<csh_table>_MOD_web_txpbsurveyM1</csh_table>
-		<keep_original_text>1</keep_original_text>
-		<ext_filename_template>EXT:pbsurveyexport/csh/###LANGKEY###.locallang_modfunc1.xml</ext_filename_template>
 		<labelContext type="array">
 		</labelContext>
 	</meta>
@@ -53,7 +51,7 @@ A lot of extensions are available which extend the frontend users table with ext
 			<label index="export_scoring.alttitle">Export: Scoring &amp; Radio button groups</label>
 			<label index="export_scoring.description">Combining rows to minimize the amount of columns.</label>
 			<label index="export_scoring.details">When having a large survey, you end up with a lot of columns. Normally for each answer to a question a new column is made. This is unneccessary for questions where only one answer can be provided.
-			
+
 To avoid a lot of columns, check 'combine'. Statistical software, like SPSS, can work with this kind of export and even demands to combine rows when using scoring points.</label>
 			<label index="export_scoring.seeAlso">xEXT_pbsurvey</label>
 			<label index="export_scoring.image"></label>
@@ -61,12 +59,11 @@ To avoid a lot of columns, check 'combine'. Statistical software, like SPSS, can
 			<label index="export_save.alttitle">Export: Save as</label>
 			<label index="export_save.description">Providing a file name.</label>
 			<label index="export_save.details">Enter a file name or use the default which is formatted as 'res_' + {page title} + '_' + {date} + '.csv'.
-			
+
 The only characters that are allowed are . a-z A-Z 0-9 _ -. The module will detect characters not matching these and substitute them by '_'.
 
 The export module writes a temporary file to the typo3temp directory. This file will not be deleted afterwards by the module and can be deleted with the Tools &gt; Install module. If you use the same name as a previous file, the previous file will be overwritten.</label>
 			<label index="export_save.seeAlso">xEXT_pbsurvey</label>
 		</languageKey>
-		<languageKey index="nl">EXT:pbsurveyexport/csh/nl.locallang_modfunc1.xml</languageKey>
 	</data>
 </T3locallang>
