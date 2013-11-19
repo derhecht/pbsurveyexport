@@ -160,7 +160,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	function replaceBlankAnswers() {
 		foreach($this->arrCsvRow as $intKey => $strValue) {
 			if(is_int($intKey) && t3lib_div::inList('1,23,2,3,4,5', $this->pObj->arrSurveyItems[$intKey]['question_type']) && $strValue == '')	{
-				$this->arrCsvRow[$intKey] = $this->strReplacementForBlankAnwers;
+				$this->arrCsvRow[$intKey] = $this->strReplacementForBlankAnswers;
 			}
 		}
 	}
