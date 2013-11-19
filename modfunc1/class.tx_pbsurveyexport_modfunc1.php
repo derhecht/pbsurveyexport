@@ -1,11 +1,11 @@
 <?php
 /***************************************************************
 *  Copyright notice
-*  
+*
 *  (c) 2005 Patrick Broens (patrick@patrickbroens.nl)
 *  All rights reserved
 *
-*  This script is part of the TYPO3 project. The TYPO3 project is 
+*  This script is part of the TYPO3 project. The TYPO3 project is
 *  free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
 *  the Free Software Foundation; either version 2 of the License, or
@@ -13,7 +13,7 @@
 *
 *  The GNU General Public License can be found at
 *  http://www.gnu.org/copyleft/gpl.html.
-* 
+*
 *  This script is distributed in the hope that it will be useful,
 *  but WITHOUT ANY WARRANTY; without even the implied warranty of
 *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -47,13 +47,13 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	var $boolReplaceBlankAnswers = false;	// True if blank answers of closed questions must be replaced by string $strReplacementForBlankAnswers
 	var $strReplacementForBlankAnswers = '0';	// Replacement string for blank answers
 
-	
+
     /**********************************
 	 *
 	 * Configuration functions
 	 *
 	 **********************************/
-	 	
+
 	/**
 	 * Initialization of the class
 	 *
@@ -75,9 +75,9 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 * General functions
 	 *
 	 **********************************/
-	 
+
 	/**
-	 * Main function of the module. 
+	 * Main function of the module.
 	 * Define if form has to be shown or file has to be created
 	 *
 	 * @return   string		HTML content for the function
@@ -93,7 +93,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		}
 		return $strOutput;
 	}
-	
+
 	/**
 	 * Generates the module content
 	 *
@@ -107,10 +107,10 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strOutput .= $this->sectionBlankAnswers();
 		$strOutput .= $this->sectionUserFields();
 		$strOutput .= $this->sectionScoring();
-		$strOutput .= $this->sectionSave();			
+		$strOutput .= $this->sectionSave();
 		return $strOutput;
 	}
-	
+
 	/**
 	 * Export a comma separated file
 	 *
@@ -150,7 +150,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			}
 		}
 	}
-	
+
 	/**
 	 * Replace blank answers of some questions (checked types) by a specific string
 	 *
@@ -164,11 +164,11 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			}
 		}
 	}
-	
+
 	/**
 	 * Builds the separator string according to the form input
 	 *
-	 * @return   void      
+	 * @return   void
 	 */
 	function getSeparator() {
 		$this->strSeparator = $this->arrModParameters['separator']['tab']?chr(9):'';
@@ -177,20 +177,20 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$this->strSeparator .= $this->arrModParameters['separator']['space']?' ':'';
 		$this->strSeparator .= $this->arrModParameters['separator']['other']?$this->arrModParameters['separator']['other_value']:'';
 	}
-	
+
 	/**
 	 * Defines output characters coding format : UTF-8 or ISO-8859-1
 	 *
-	 * @return   void      
+	 * @return   void
 	 */
 	function getCodingFormat() {
 		$this->boolChangeCodingFormat = $this->arrModParameters['chgFormat'];
 	}
-	
+
 	/**
 	 * Defines parameters of blank answers processing
 	 *
-	 * @return   void     
+	 * @return   void
 	 */
 	function getBlankAnswersProcessing() {
 		if(isset($this->arrModParameters['replBlank']['bool']))	{
@@ -198,7 +198,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			$this->strReplacementForBlankAnswers = $this->arrModParameters['replBlank']['value']?$this->arrModParameters['replBlank']['value']:'0';
 		}
 	}
-	
+
 	/**
 	 * Write the column names as first row to the csv file
 	 *
@@ -261,7 +261,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$mixOutput = $this->writeCsvLine($arrColNames);
 		return $mixOutput;
 	}
-	
+
 	/**
 	 * Write each result as a new line to the csv file
 	 *
@@ -303,7 +303,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		}
 		return $mixOutput;
 	}
-	
+
 	/**
 	 * Write a single csv line to the file
 	 *
@@ -311,11 +311,12 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 * @return   mixed			Number of bytes written, or FALSE on error
 	 */
 	function writeCsvLine($arrInput) {
-	    $strWrite = t3lib_div::csvValues($arrInput,$this->strSeparator,$this->arrModParameters['separator']['delimiter']).chr(10);
-	    
-		if($GLOBALS["TYPO3_CONF_VARS"]["BE"]["forceCharset"] = 'utf-8' && $this->boolChangeCodingFormat)
-	    	$strWrite = utf8_decode($strWrite);
-	
+		$strWrite = t3lib_div::csvValues($arrInput,$this->strSeparator,$this->arrModParameters['separator']['delimiter']).chr(10);
+
+		if ($GLOBALS["TYPO3_CONF_VARS"]["BE"]["forceCharset"] == 'utf-8' && $this->boolChangeCodingFormat) {
+			$strWrite = utf8_decode($strWrite);
+		}
+
 		$mixOutput = fwrite($this->fileHandle, $strWrite);
 		return $mixOutput;
 	}
@@ -361,13 +362,13 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		}
 		return $boolOutput;
 	}
-		 
+
 	/**********************************
 	 *
 	 * Rendering functions
 	 *
 	 **********************************/
-	 	 	
+
 	/**
 	 * Section which shows the main error message if any after submitting the form
 	 *
@@ -382,7 +383,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		return $strOutput;
 		}
 	}
-	
+
 	/**
 	 * Build section to define which rows are exported
 	 *
@@ -418,7 +419,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
-	
+
 	/**
 	 * Build section to configure the text separators and delimiter
 	 *
@@ -459,7 +460,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
-	
+
 	/**
 	 * Build section to select which fields from fe_user table will be included in the export file
 	 *
@@ -486,7 +487,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
-	
+
 	/**
 	 * Build section where user can process blank answers
 	 *
@@ -508,7 +509,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
-	
+
 	/**
 	 * Build section where user can select the export output format if the database is coded in UTF-8
 	 *
@@ -528,7 +529,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		}
 		return $strOutput;
 	}
-	
+
 	/**
 	 * Build section where user can select the type of export for option groups
 	 *
@@ -545,7 +546,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
-	
+
 	/**
 	 * Build section where user can provide a filename for the export file
 	 *
@@ -565,7 +566,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 * Reading functions
 	 *
 	 **********************************/
-	
+
 	/**
 	 * Read the user information from the database
 	 *
@@ -592,7 +593,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			}
 		}
 	}
-	
+
 	/**
 	 * Read the answers belonging to the result from the database
 	 *
@@ -611,7 +612,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			$strKey = $arrAnswersRow['question'];
 			if (in_array($arrItem['question_type'],array(1,23))) {
 				$strKey .= '_'.$arrAnswersRow['row'];
-			} 
+			}
 			if (in_array($arrItem['question_type'],array(2,3,4,5))) {
 				if ($arrItem['question_type']==3 && !is_numeric($arrAnswersRow['answer'])) {
 					$strKey .= '_-1';
@@ -628,7 +629,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 				if (in_array($arrItem['question_type'],array(6,7))) {
 					$strKey .= '_'.$arrAnswersRow['col'];
 				}
-			}			
+			}
 			if (in_array($arrItem['question_type'],array(7,9,10,11,12,13,14,15,16)) || ($arrItem['question_type']==1 && $arrAnswersRow['row']<0) || ($arrItem['question_type']==3 && !is_numeric($arrAnswersRow['answer']))) {
 				$strAnswer = $arrAnswersRow['answer'];
 			} elseif (in_array($arrItem['question_type'],array(1,2,3,6,8,23))) {
