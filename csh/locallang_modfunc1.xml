@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<description>Web&gt;Questionaire, Export module</description>
+		<type>CSH</type>
+		<fileId>EXT:pbsurveyexport/csh/locallang_modfunc1.xml</fileId>
+		<csh_table>_MOD_web_txpbsurveyM1</csh_table>
+		<labelContext type="array">
+		</labelContext>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="export_configuration.alttitle">Export: Main configuration</label>
+			<label index="export_configuration.description">Select the rows to export</label>
+			<label index="export_configuration.details">Select if you want to export all rows or just a part of the results.
+
+Check &lt;strong&gt;'Export all rows'&lt;/strong&gt; if you want to export all results to the csv file. The number in parenthesis (234) is the amount of finished results.
+
+Check &lt;strong&gt;'Export selected rows'&lt;/strong&gt; if you only want to export a selection of results to the csv file. When you check this box, you also have to fill the field 'From row', which is used for the starting record, and the field 'till', which is the last record.
+
+There is also an option to &lt;strong&gt;include unfinished responses&lt;/strong&gt;. The amount of unfinished results is stated in parenthesis (23).
+
+&lt;strong&gt;Note:&lt;/strong&gt; Exporting can take a lot of time. If you have a lot of results it is possible that the server times out. In that case you can export the results in parts by using the option 'Export selected rows'. If you do this and want to include unfinished results as well, remember, when exporting the last part, to add the number of unfinished results to the finished ones and put this number in the field 'till', otherwise you don't get all the results.</label>
+			<label index="export_configuration.seeAlso">xEXT_pbsurvey</label>
+			<label index="export_configuration.image"></label>
+			<label index="export_configuration.image_descr"></label>
+			<label index="export_separator.alttitle">Export: Separator options</label>
+			<label index="export_separator.description">How values are separated in the csv file.</label>
+			<label index="export_separator.details">In a csv file values are separated by a separator and a delimiter. Most of the time the separator will be a comma, the delimiter a quotation mark. This is also the default setting of the export module.
+
+In some cases however, it may be necessary to change these values. You can select more than one separator.</label>
+			<label index="export_separator.seeAlso">xEXT_pbsurvey</label>
+			<label index="export_separator.image"></label>
+			<label index="export_separator.image_descr"></label>
+			<label index="export_user_information.alttitle">Export: User information</label>
+			<label index="export_user_information.description">Check the fields of the user information you want to include as columns in the export file.</label>
+			<label index="export_user_information.details">The options depend on the fields available in the frontend users database (fe_users) and will adjust if more fields are added.
+
+A lot of extensions are available which extend the frontend users table with extra fields for different purposes. The export module looks for all available fields and displays them here.</label>
+			<label index="export_user_information.seeAlso">xEXT_pbsurvey</label>
+			<label index="export_user_information.image"></label>
+			<label index="export_user_information.image_descr"></label>
+			<label index="export_format.alttitle">Export: Output coding format</label>
+			<label index="export_format.description">Defining output coding format.</label>
+			<label index="export_format.details">If your database is coded in UTF-8, you could be interested to export your data in ISO-8859-1 (common format used under Windows).</label>
+			<label index="export_format.image"></label>
+			<label index="export_blank.alttitle">Export: Replace blank answers</label>
+			<label index="export_blank.description">Defining a replacement string for blank answers.</label>
+			<label index="export_blank.details">If answers to your closed questions are not required, you could be interested to export a specific value for blank answers.</label>
+			<label index="export_blank.image"></label>
+			<label index="export_scoring.alttitle">Export: Scoring &amp; Radio button groups</label>
+			<label index="export_scoring.description">Combining rows to minimize the amount of columns.</label>
+			<label index="export_scoring.details">When having a large survey, you end up with a lot of columns. Normally for each answer to a question a new column is made. This is unneccessary for questions where only one answer can be provided.
+
+To avoid a lot of columns, check 'combine'. Statistical software, like SPSS, can work with this kind of export and even demands to combine rows when using scoring points.</label>
+			<label index="export_scoring.seeAlso">xEXT_pbsurvey</label>
+			<label index="export_scoring.image"></label>
+			<label index="export_scoring.image_descr"></label>
+			<label index="export_save.alttitle">Export: Save as</label>
+			<label index="export_save.description">Providing a file name.</label>
+			<label index="export_save.details">Enter a file name or use the default which is formatted as 'res_' + {page title} + '_' + {date} + '.csv'.
+
+The only characters that are allowed are . a-z A-Z 0-9 _ -. The module will detect characters not matching these and substitute them by '_'.
+
+The export module writes a temporary file to the typo3temp directory. This file will not be deleted afterwards by the module and can be deleted with the Tools &gt; Install module. If you use the same name as a previous file, the previous file will be overwritten.</label>
+			<label index="export_save.seeAlso">xEXT_pbsurvey</label>
+		</languageKey>
+	</data>
+</T3locallang>

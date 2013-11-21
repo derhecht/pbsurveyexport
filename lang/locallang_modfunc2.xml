@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<description>Language labels of Questionaire export module</description>
+		<type>module</type>
+		<csh_table></csh_table>
+		<fileId>EXT:pbsurveyexport/lang/locallang_modfunc2.xml</fileId>
+		<labelContext type="array" />
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="moduleFunction">Delete results</label>
+			<label index="indexSection">Delete results on this page</label>
+			<label index="indexText">With this module you can delete all survey results on this page. Be aware that the results will be removed completely.</label>
+			<label index="submitDelete">Delete the results now</label>
+			<label index="confirmationSection">Confirmation about the removal of the results</label>
+			<label index="confirmationText">Are you sure you want to remove all survey results from this page?</label>
+			<label index="submitConfirmation">Yes, I'm sure</label>
+			<label index="deleteSection">Deleting the results from the database</label>
+			<label index="deleteText">All survey results are removed from this page</label>
+			<label index="errorText">An error occured while removing the survey results from this page!</label>
+		</languageKey>
+	</data>
+</T3locallang>
