@@ -240,7 +240,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 					if (isset($arrItem['answers_allow_additional']) && $arrItem['answers_allow_additional'] > 0) {
 						$arrColNames[$intQuestionKey.'_-1'] = $strQuestion.'('.$LANG->getLL('additional').')';
 					}
-				} else { // 6,7,8,9,11,15,16
+				} elseif (in_array($arrItem['question_type'], array(6, 7, 8, 9, 11, 15, 16))) {
 					foreach ($arrItem['rows'] as $intRowKey=>$row) {
 						if (in_array($arrItem['question_type'],array(6,7)) || ($this->arrModParameters['scoring']==0 && $arrItem['question_type']==8)) {
 							foreach ($arrItem['answers'] as $intAnswerKey=>$answer) {
@@ -249,6 +249,10 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 						} else {
 							$arrColNames[$intQuestionKey.'_'.$intRowKey] = $strQuestion.'('.$row.')';
 						}
+					}
+				} elseif ($arrItem['question_type'] == 24) {
+					foreach (range($arrItem['beginning_number'], $arrItem['ending_number']) as $counter) {
+						$arrColNames[$intQuestionKey . '_' . $counter] = $strQuestion . '(' . $counter . ')';
 					}
 				}
 			} else {
@@ -644,6 +648,9 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 				} else {
 					$strAnswer = 1;
 				}
+			} elseif ($arrItem['question_type'] == 24) {
+				$strKey .= '_' . $arrAnswersRow['row'];
+				$strAnswer = $arrItem['images'][$arrAnswersRow['answer'] - 1];
 			}
 			$this->arrCsvRow[$strKey] = str_replace(array(chr(10),chr(13)), " ", $strAnswer);
 		}
