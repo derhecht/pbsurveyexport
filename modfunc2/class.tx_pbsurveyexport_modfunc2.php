@@ -22,10 +22,11 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-$LANG->includeLLFile('EXT:pbsurveyexport/lang/locallang_modfunc2.xml');
-require_once (PATH_t3lib . 'class.t3lib_extobjbase.php');
-require_once (PATH_t3lib . 'class.t3lib_admin.php');
-$BE_USER->modAccess($MCONF, 1);
+$GLOBALS['LANG']->includeLLFile('EXT:pbsurveyexport/lang/locallang_modfunc2.xml');
+$GLOBALS['BE_USER']->modAccess($MCONF,1);
+
+use \TYPO3\CMS\Core\Utility\GeneralUtility;
+use \TYPO3\CMS\Backend\Utility\BackendUtility;
 
 /**
  * Backend Module Function 'Delete results' for the 'pbsurvey' extension.
@@ -34,7 +35,7 @@ $BE_USER->modAccess($MCONF, 1);
  * @package TYPO3
  * @subpackage pbsurveyexport
  */
-class tx_pbsurveyexport_modfunc2 extends t3lib_extobjbase {
+class tx_pbsurveyexport_modfunc2 extends \TYPO3\CMS\Backend\Module\AbstractFunctionModule {
 	/**
 	 * Initialization of the class
 	 *
@@ -45,8 +46,8 @@ class tx_pbsurveyexport_modfunc2 extends t3lib_extobjbase {
 	public function init(&$pObj, $conf) {
 		global $BACK_PATH;
 		parent::init($pObj, $conf);
-		$this->getPostParameters = t3lib_div::_GP($this->pObj->strExtKey);
-		$this->pageInfo = t3lib_BEfunc::readPageAccess($this->pObj->id, $this->perms_clause);
+		$this->getPostParameters = GeneralUtility::_GP($this->pObj->strExtKey);
+		$this->pageInfo = BackendUtility::readPageAccess($this->pObj->id, $this->perms_clause);
 	}
 
 	/**

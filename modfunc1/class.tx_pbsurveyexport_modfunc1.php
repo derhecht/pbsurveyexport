@@ -22,11 +22,11 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-$LANG->includeLLFile('EXT:pbsurveyexport/lang/locallang_modfunc1.xml');
-require_once (PATH_t3lib.'class.t3lib_extobjbase.php');
-require_once (PATH_t3lib.'class.t3lib_admin.php');
-require_once (PATH_t3lib.'class.t3lib_basicfilefunc.php');
-$BE_USER->modAccess($MCONF,1);
+$GLOBALS['LANG']->includeLLFile('EXT:pbsurveyexport/lang/locallang_modfunc1.xml');
+$GLOBALS['BE_USER']->modAccess($MCONF,1);
+
+use \TYPO3\CMS\Core\Utility\GeneralUtility;
+use \TYPO3\CMS\Backend\Utility\BackendUtility;
 
 /**
  * Backend Module Function 'Export' for the 'pbsurvey' extension.
@@ -35,7 +35,7 @@ $BE_USER->modAccess($MCONF,1);
  * @package TYPO3
  * @subpackage pbsurveyexport
  */
-class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
+class tx_pbsurveyexport_modfunc1 extends \TYPO3\CMS\Backend\Module\AbstractFunctionModule {
     var $arrModParameters = array(); // Module parameters, coming from TCEforms linking to the module.
     var $arrPageInfo = array(); // Page access
 	var $arrResults = array(); // Array containing integers about results, called from main module.
@@ -64,8 +64,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	function init(&$pObj,$conf)	{
 		global $BACK_PATH;
 		parent::init($pObj,$conf);
-		$this->arrModParameters = t3lib_div::_GP($this->pObj->strExtKey);
-		$this->arrPageInfo = t3lib_BEfunc::readPageAccess($this->pObj->id,$this->perms_clause);
+		$this->arrModParameters = GeneralUtility::_GP($this->pObj->strExtKey);
+		$this->arrPageInfo = BackendUtility::readPageAccess($this->pObj->id,$this->perms_clause);
 		$this->arrResults = $this->pObj->countResults();
 		$this->intTotalRows = $this->arrResults['finished'] + ($this->arrModParameters['unfinished']?$this->arrResults['unfinished']:0);
 	}
@@ -84,6 +84,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 */
 	function main()	{
 		global $BE_USER;
+		$strOutput = '';
 		$this->checkForm();
 		if ($this->checkForm()) {
 			$this->buildCsv();
@@ -100,7 +101,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 * @return   string      HTML Content for the module
 	 */
 	function moduleContent() {
-		$strOutput .= $this->sectionError();
+		$strOutput = $this->sectionError();
 		$strOutput .= $this->sectionConfiguration();
 		$strOutput .= $this->sectionSeparator();
 		$strOutput .= $this->sectionFormat();
@@ -119,7 +120,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	function buildCsv() {
 		global $LANG;
 		$strFilepath = PATH_site . 'typo3temp/' . $this->arrModParameters['filename'];
-		t3lib_div::unlink_tempfile($strFilepath);
+		GeneralUtility::unlink_tempfile($strFilepath);
 		if ($this->fileHandle = fopen($strFilepath,'ab')) {
 			$this->getSeparator();
 			$this->getCodingFormat();
@@ -127,7 +128,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			$arrError['column'] = $this->writeCsvColumnNames();
 			$arrError['result'] = $this->writeCsvResult();
 			$arrError['close'] = fclose($this->fileHandle);
-			t3lib_div::fixPermissions($strFilepath);
+			GeneralUtility::fixPermissions($strFilepath);
 			if (!in_array(FALSE,$arrError)) {
 				header('Pragma: public');
 				header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
@@ -159,7 +160,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 */
 	function replaceBlankAnswers() {
 		foreach($this->arrCsvRow as $intKey => $strValue) {
-			if(is_int($intKey) && t3lib_div::inList('1,23,2,3,4,5', $this->pObj->arrSurveyItems[$intKey]['question_type']) && $strValue == '')	{
+			if(is_int($intKey) && GeneralUtility::inList('1,23,2,3,4,5', $this->pObj->arrSurveyItems[$intKey]['question_type']) && $strValue == '')	{
 				$this->arrCsvRow[$intKey] = $this->strReplacementForBlankAnswers;
 			}
 		}
@@ -278,8 +279,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
     	$arrResultsConf['where'] = '1=1';
     	$arrResultsConf['where'] .= ' AND pid=' . intval($this->pObj->id);
 		$arrResultsConf['where'] .= isset($this->arrModParameters['unfinished'])?'':' AND finished=1';
-		$arrResultsConf['where'] .= t3lib_BEfunc::BEenableFields($this->pObj->strResultsTable);
-		$arrResultsConf['where'] .= t3lib_BEfunc::deleteClause($this->pObj->strResultsTable);
+		$arrResultsConf['where'] .= BackendUtility::BEenableFields($this->pObj->strResultsTable);
+		$arrResultsConf['where'] .= BackendUtility::deleteClause($this->pObj->strResultsTable);
 		$arrResultsConf['orderBy'] = 'uid ASC';
 		if ($this->arrModParameters['rows']=='selected') {
 			$arrResultsConf['limit'] = $this->arrModParameters['configuration']['from'] . ',' . $this->arrModParameters['configuration']['count'];
@@ -292,8 +293,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 				$this->arrCsvRow['finished'] = $arrResultRow['finished'];
 			}
 			$this->arrCsvRow['ip'] = $arrResultRow['ip'];
-			$this->arrCsvRow['begintstamp'] =  t3lib_BEfunc::datetime($arrResultRow['begintstamp']);
-			$this->arrCsvRow['endtstamp'] = t3lib_BEfunc::datetime($arrResultRow['endtstamp']);
+			$this->arrCsvRow['begintstamp'] =  BackendUtility::datetime($arrResultRow['begintstamp']);
+			$this->arrCsvRow['endtstamp'] = BackendUtility::datetime($arrResultRow['endtstamp']);
 			$this->arrCsvRow['language'] = $arrResultRow['language_uid'];
 			$this->readUser($arrResultRow['user']);
 			$this->readAnswers($arrResultRow['uid']);
@@ -315,7 +316,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 * @return   mixed			Number of bytes written, or FALSE on error
 	 */
 	function writeCsvLine($arrInput) {
-		$strWrite = t3lib_div::csvValues($arrInput,$this->strSeparator,$this->arrModParameters['separator']['delimiter']).chr(10);
+		$strWrite = GeneralUtility::csvValues($arrInput,$this->strSeparator,$this->arrModParameters['separator']['delimiter']).chr(10);
 
 		if ($GLOBALS["TYPO3_CONF_VARS"]["BE"]["forceCharset"] == 'utf-8' && $this->boolChangeCodingFormat) {
 			$strWrite = utf8_decode($strWrite);
@@ -338,7 +339,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 	 */
 	function checkForm() {
 		global $LANG;
-		$this->objFileManagement = t3lib_div::makeInstance('t3lib_basicFileFunctions');
+		$this->objFileManagement = GeneralUtility::makeInstance('t3lib_basicFileFunctions');
 		$boolOutput = TRUE;
 		if (isset($this->arrModParameters['submit'])) {
 			if ($this->arrModParameters['rows']=='selected') {
@@ -419,7 +420,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrOptions[] = '<td colspan="4">'.$LANG->getLL('export_unfinished').' ('.$this->arrResults['unfinished'].')</td>';
 		$arrOptions[] = '</tr>';
 		$arrOptions[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('export_configuration'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_configuration',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrOptions),0,1);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('export_configuration'),BackendUtility::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_configuration',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrOptions),0,1);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
@@ -460,7 +461,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrSeparator[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[separator][delimiter]" value="' . $strValue . '" maxlength="1" /></td>';
 		$arrSeparator[] = '</tr>';
 		$arrSeparator[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('separator_options'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_separator',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrSeparator),0,0);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('separator_options'),BackendUtility::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_separator',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrSeparator),0,0);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
@@ -487,7 +488,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			}
 		}
 		$arrUserFields[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('fe_users'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_user_information',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrUserFields),0,0);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('fe_users'),BackendUtility::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_user_information',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrUserFields),0,0);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
@@ -509,7 +510,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrBlankAnswers[] = '<td><input type="text" name="'.$this->pObj->strExtKey.'[replBlank][value]" value="' . $strValue . '" /></td>';
 		$arrBlankAnswers[] = '</tr>';
 		$arrBlankAnswers[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('blankAnswers'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_blank',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrBlankAnswers),0,0);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('blankAnswers'),BackendUtility::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_blank',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrBlankAnswers),0,0);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
@@ -528,7 +529,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 			$arrFormat[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[chgFormat]" value="0" checked="checked" /></td><td>'.$LANG->getLL('format_utf8').'</td></tr>';
 			$arrFormat[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[chgFormat]" value="1" /></td><td>'.$LANG->getLL('format_iso').'</td></tr>';
 			$arrFormat[] = '</table>';
-			$strOutput = $this->pObj->objDoc->section($LANG->getLL('format'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_format',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrFormat),0,0);
+			$strOutput = $this->pObj->objDoc->section($LANG->getLL('format'),BackendUtility::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_format',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrFormat),0,0);
 			$strOutput .= $this->pObj->objDoc->divider(10);
 		}
 		return $strOutput;
@@ -546,7 +547,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrScoring[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[scoring]" value="1" checked="checked" /></td><td>'.$LANG->getLL('scoring_combine').'</td></tr>';
 		$arrScoring[] ='<tr><td><input type="radio" name="'.$this->pObj->strExtKey.'[scoring]" value="0" /></td><td>'.$LANG->getLL('scoring_notCombine').'</td></tr>';
 		$arrScoring[] = '</table>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('scoring'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_scoring',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrScoring),0,0);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('scoring'),BackendUtility::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_scoring',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrScoring),0,0);
 		$strOutput .= $this->pObj->objDoc->divider(10);
 		return $strOutput;
 	}
@@ -561,7 +562,7 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$strTitle = str_replace(' ', '', $this->arrPageInfo['title']);
 		$strFileName = $this->arrModParameters['filename']?$this->arrModParameters['filename']:'res_'.$strTitle.'_'.date('dmy-Hi').'.csv';
 		$arrFileName[] = '<p>'.$LANG->getLL('save_filename').'&nbsp;<input type="text" name="'.$this->pObj->strExtKey.'[filename]" value="'.$strFileName.'" />&nbsp;<input type="submit" name="'.$this->pObj->strExtKey.'[submit]" value="'.$LANG->getLL('save_submit').'" /></p>';
-		$strOutput = $this->pObj->objDoc->section($LANG->getLL('save'),t3lib_BEfunc::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_save',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrFileName),0,0);
+		$strOutput = $this->pObj->objDoc->section($LANG->getLL('save'),BackendUtility::cshItem('_MOD_'.$GLOBALS['MCONF']['name'],'export_save',$GLOBALS['BACK_PATH'],'|<br/>').implode(chr(13),$arrFileName),0,0);
 		return $strOutput;
 	}
 
@@ -608,8 +609,8 @@ class tx_pbsurveyexport_modfunc1 extends t3lib_extobjbase {
 		$arrAnswersConf['selectFields'] = 'uid,question,col,row,answer';
     	$arrAnswersConf['where'] = '1=1';
     	$arrAnswersConf['where'] .= ' AND result=' . $intInput;
-		$arrAnswersConf['where'] .= t3lib_BEfunc::BEenableFields($this->pObj->strAnswersTable);
-		$arrAnswersConf['where'] .= t3lib_BEfunc::deleteClause($this->pObj->strAnswersTable);
+		$arrAnswersConf['where'] .= BackendUtility::BEenableFields($this->pObj->strAnswersTable);
+		$arrAnswersConf['where'] .= BackendUtility::deleteClause($this->pObj->strAnswersTable);
 		$dbRes = $GLOBALS['TYPO3_DB']->exec_SELECTquery($arrAnswersConf['selectFields'],$this->pObj->strAnswersTable,$arrAnswersConf['where'],'',$arrAnswersConf['orderBy'],'');
 		while ($arrAnswersRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($dbRes)){
 			$arrItem = $this->pObj->arrSurveyItems[$arrAnswersRow['question']];
