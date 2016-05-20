@@ -25,7 +25,7 @@
   ],
   "require": {
     "typo3/cms-core": ">=7.6.0,<8.0",
-	"derhecht/pbsurvey": ">=1.7.0"
+	"derhecht/pbsurvey": "^1.7"
   },
   "autoload": {
     "classmap": ["modfunc1/class.tx_pbsurveyexport_modfunc1.php", "modfunc2/class.tx_pbsurveyexport_modfunc2.php"]
